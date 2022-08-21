@@ -4,7 +4,7 @@
   >
     <div class="infoHeight">
       <div class="infoCols">
-        نام و نام خانوادگی :
+        نام  و نام خانوادگی :
         {{ user.first_name }}
         {{ user.last_name }}
       </div>
