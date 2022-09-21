@@ -1,25 +1,34 @@
 <template>
-  <quasar-template-builder v-model:value="properties"
-                           @onResize="resize">
+  <quasar-template-builder @onResize="resize">
     <template #header>
-      <div v-if="$route.name === 'onlineQuiz.alaaView'"
+      <div v-if="getTemplateHeaderType === 'quiz'"
            class="header-inside row">
         <online-quiz-template-header />
       </div>
-      <div v-else
-           class="header-inside row">
+      <div v-else-if="getTemplateHeaderType === 'default'"
+           class="user-main-layout-header">
+        <div class="header-inside row">
+          <user-template-header />
+        </div>
+      </div>
+      <div v-else-if="getTemplateHeaderType === 'panel'"
+           class="main-layout-header row">
         <template-header />
       </div>
       <q-resize-observer @resize="setHeaderDimension" />
     </template>
     <template #left-drawer>
-      <div v-if="$route.name === 'onlineQuiz.alaaView'"
+      <div v-if="getTemplateLeftSideBarType === 'quiz'"
            class="drawer-inside-of-MapOfQuestions">
         <sideMenuMapOfQuestions />
       </div>
-      <div v-else
+      <div v-else-if="getTemplateLeftSideBarType === 'panel'"
            class="drawer-inside">
         <side-menu-dashboard />
+      </div>
+      <div v-else-if="getTemplateLeftSideBarType === 'default'"
+           class="drawer-inside">
+        <user-side-bar />
       </div>
     </template>
     <template #content>
@@ -31,7 +40,9 @@
         indeterminate
       />
       <div ref="contentInside"
-           class="content-inside">
+           class="content-inside"
+           :class="{ 'user-panel' : getTemplateLeftSideBarType === 'default' }"
+      >
         <q-dialog v-model="confirmDialogData.show"
                   persistent>
           <q-card class="q-pa-md q-pb-none">
@@ -65,42 +76,43 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+
+import { defineAsyncComponent } from 'vue'
 import { QuasarTemplateBuilder } from 'quasar-template-builder'
-import Router from 'src/router/Router'
 import KeepAliveComponents from 'assets/js/KeepAliveComponents'
-import Auth from 'components/Auth'
-import templateHeader from 'components/Template/templateHeader'
-import SideMenuDashboard from 'components/Menu/SideMenu/SideMenu-dashboard'
-import sideMenuMapOfQuestions from 'components/Menu/SideMenu/SideMenu_MapOfQuestions'
-import onlineQuizTemplateHeader from 'components/Template/onlineQuizTemplateHeader'
+// import templateHeader from 'components/Headers/templateHeader'
+// import onlineQuizTemplateHeader from 'components/Headers/onlineQuizTemplateHeader'
+// import UserTemplateHeader from 'components/Headers/userTemplateHeader'
+// import Router from 'src/router/Router'
+// import Auth from 'components/Auth'
+// import SideMenuDashboard from 'components/Menu/SideMenu/SideMenu-dashboard'
+// import sideMenuMapOfQuestions from 'components/Menu/SideMenu/SideMenu_MapOfQuestions'
+// import UserSideBar from 'layouts/UserPanelLayouts/UserSideBar'
 
 export default {
-  components: { Router, SideMenuDashboard, sideMenuMapOfQuestions, QuasarTemplateBuilder, templateHeader, onlineQuizTemplateHeader, Auth },
+  components: {
+    QuasarTemplateBuilder,
+    UserSideBar: defineAsyncComponent(() => import('layouts/UserPanelLayouts/UserSideBar')),
+    sideMenuMapOfQuestions: defineAsyncComponent(() => import('components/Menu/SideMenu/SideMenu_MapOfQuestions')),
+    SideMenuDashboard: defineAsyncComponent(() => import('components/Menu/SideMenu/SideMenu-dashboard')),
+    Router: defineAsyncComponent(() => import('src/router/Router')),
+    templateHeader: defineAsyncComponent(() => import('components/Headers/templateHeader')),
+    onlineQuizTemplateHeader: defineAsyncComponent(() => import('components/Headers/onlineQuizTemplateHeader')),
+    UserTemplateHeader: defineAsyncComponent(() => import('components/Headers/userTemplateHeader')),
+    Auth: defineAsyncComponent(() => import('components/Auth'))
+
+    // UserSideBar,
+    // Router,
+    // SideMenuDashboard,
+    // sideMenuMapOfQuestions,
+    // templateHeader,
+    // onlineQuizTemplateHeader,
+    // UserTemplateHeader,
+    // Auth
+  },
   data () {
     return {
-      keepAliveComponents: KeepAliveComponents,
-      properties: {
-        layoutView: 'lHh Lpr lFf',
-        layoutHeader: true,
-        layoutHeaderVisible: true,
-        layoutHeaderReveal: false,
-        layoutHeaderElevated: false,
-        layoutHeaderBordered: false,
-        layoutLeftDrawer: true,
-        layoutLeftDrawerVisible: true,
-        layoutLeftDrawerOverlay: false,
-        layoutLeftDrawerElevated: false,
-        layoutLeftDrawerBordered: false,
-        layoutLeftDrawerWidth: 325,
-        layoutPageContainer: true,
-        layoutRightDrawer: false,
-        layoutFooter: false,
-        layoutHeaderCustomClass: 'main-layout-header row',
-        layoutLeftDrawerCustomClass: 'main-layout-left-drawer',
-        layoutPageContainerCustomClass: 'main-layout-container'
-      },
-      contentInside: ref(0)
+      keepAliveComponents: KeepAliveComponents
     }
   },
   computed: {
@@ -121,10 +133,19 @@ export default {
     },
     linearLoading () {
       return this.$store.getters['AppLayout/linearLoading']
+    },
+    getTemplateHeaderType() {
+      return this.$store.getters['AppLayout/templateHeaderType']
+    },
+    getTemplateLeftSideBarType() {
+      return this.$store.getters['AppLayout/templateLeftSideBarType']
     }
   },
+  watch: {
+  },
+  mounted () {
+  },
   created () {
-    this.updateLayout()
   },
   methods: {
     updateLayout () {
@@ -140,6 +161,13 @@ export default {
     },
     setHeaderDimension (value) {
       this.$refs.contentInside.style.height = 'calc(100vh +' + value.height + 'px'
+    },
+    setLayoutCustomClass () {
+      if (this.templateHeaderType === 'dashboard') {
+        this.properties.layoutHeaderCustomClass = 'user-main-layout-header row'
+        return
+      }
+      this.properties.layoutHeaderCustomClass = 'main-layout-header row'
     },
     resize (val) {
       this.$store.commit('AppLayout/updateWindowSize', val)
@@ -166,22 +194,31 @@ export default {
 
 }
 
+:deep(.user-main-layout-header) {
+  background-color: #f1f1f1;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+
+  .header-inside {
+    width: 100%;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    color: #65677F;
+  }
+}
+
 .main-layout-container {
 }
 .content-inside {
   //overflow: auto;
 }
-
-.main-layout-left-drawer {
-  .drawer-inside-of-MapOfQuestions{
-    height: 100%;
-  }
+.user-panel {
+  background: #F4F6F9;
 }
-</style>
-
-<style lang="scss">
 .main-layout-header {
-  background-color: #f1f1f1;
+  background-color: #F4F6F9;
   display: flex;
   flex-direction: row;
   padding: 60px 100px 24px 76px;
@@ -213,11 +250,42 @@ export default {
   }
 }
 
+//.user-main-layout-header {
+//  background-color: #f1f1f1;
+//  display: flex;
+//  flex-direction: row;
+//
+//  .header-inside {
+//    width: 100%;
+//    background: #fff;
+//    display: flex;
+//    justify-content: center;
+//    color: #65677F;
+//  }
+//}
+
 .main-layout-container {
-  background-color: #f1f1f1;
+}
+.content-inside {
+  //overflow: auto;
 }
 
 .main-layout-left-drawer {
-  background-color: #f1f1f1;
+  .drawer-inside-of-MapOfQuestions{
+    height: 100%;
+  }
+}
+</style>
+
+<style lang="scss">
+
+.main-layout-container {
+  //background-color: #f1f1f1;
+  background-color: #F4F6F9;
+}
+
+.main-layout-left-drawer {
+  //background-color: #f1f1f1;
+  background-color: #F4F6F9;
 }
 </style>

@@ -5,6 +5,17 @@
   <!--      @click="add"-->
   <!--    />-->
   <!--  </div>-->
+  <div
+    v-if="count > 0"
+    class="cart-count">
+    سبدخرید شما ({{count}} محصول)
+  </div>
+  <div
+    v-else
+    class="cart-count"
+  >
+    سبدخرید شما ({{count}})
+  </div>
   <div class="cart-template row">
     <div
       v-if="count !== 0"
@@ -17,7 +28,7 @@
       v-if="count"
       class="side-invoice col-md-4 col-12"
     >
-      <cart-invoice :data="checkOutReviewResponse" />
+      <cart-invoice />
     </div>
 
     <div
@@ -31,6 +42,7 @@
 </template>
 
 <script>
+// import API_ADDRESS from 'src/api/Addresses'
 import cartInvoice from 'components/Widgets/Cart/CartInvoice/CartInvoice'
 import cartView from 'components/Widgets/Cart/CartView/CartView'
 import cartEmpty from 'components/Widgets/Cart/CartEmpty/CartEmpty'
@@ -44,11 +56,14 @@ export default {
 
   data() {
     return {
-      checkOutReviewResponse: {}
     }
   },
 
   created () {
+    // this.$axios.get(API_ADDRESS.cart.product)
+    //   .then((res) => {
+    //     console.log(res)
+    //   })
     this.cartReview()
   },
 
@@ -59,23 +74,42 @@ export default {
   },
 
   methods: {
-    // add () {
-    //   this.$store.dispatch('Cart/addToCart', { id: 747 }).then(() => {
-    //     this.cartReview()
-    //   })
-    // },
+    add () {
+      // console.log('1 cart', this.$store.getters['Cart/cart'])
+      // this.$store.getters['Cart/cart'].addToCart({ id: 489 })
+      // console.log('2 cart', this.$store.getters['Cart/cart'])
+      this.$store.dispatch('Cart/addToCart', {
+        product: { id: 901 },
+        products: [903]
+      })
+        .then(() => {
+          this.cartReview()
+        })
+    },
     cartReview() {
       this.$store.dispatch('loading/overlayLoading', true)
       this.$store.dispatch('Cart/reviewCart')
-        .then((response) => {
-          this.checkOutReviewResponse = response.data.data
+        .then(() => {
           this.$store.dispatch('loading/overlayLoading', false)
+          // console.log('cart', this.$store.getters['Cart/cart'])
         })
     }
   }
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+.cart-count {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+  color: #6D708B;
+  margin: 24px 0 22px 0;
 
+  @media screen and (max-width: 1439px) {
+    letter-spacing: -0.03em;
+    margin: 20px 0;
+  }
+}
 </style>

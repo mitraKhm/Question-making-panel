@@ -49,6 +49,7 @@
           :major-list="majorList"
           :authorship-dates-list="authorshipDatesList"
           :question-authors-list="questionAuthorsList"
+          :question-target-list="questionTargetList"
           :buffer="true"
           @gradeSelected="getLessonsList"
           @groupSelected="getLessonsList"
@@ -66,9 +67,9 @@
 </template>
 
 <script>
+import BtnBox from 'components/Question/QuestionPage/BtnBox'
 import uploadImage from 'src/components/Question/QuestionPage/UploadImage'
 import { Question } from 'src/models/Question'
-import BtnBox from 'components/Question/QuestionPage/BtnBox'
 import { computed } from 'vue'
 import { AdminActionOnQuestion } from 'src/mixin/Mixins'
 import { ExamList } from 'src/models/Exam'
@@ -104,6 +105,7 @@ export default {
     this.getPageReady()
     this.getGradesList()
     this.loadQuestionAuthors()
+    this.loadQuestionTargets()
     this.loadAuthorshipDates()
     this.loadMajorList()
   },

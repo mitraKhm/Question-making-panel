@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center full-width videoPlayer-container-radius">
+  <div class="flex justify-center full-width video-js-style">
     <video
       id="my-video"
       ref="videoPlayer"
@@ -7,13 +7,14 @@
       preload="auto"
       :height="calcTheHeight"
       :width="calcTheWidth"
-      class="video-js vjs-fluid vjs-big-play-centered vjs-show-big-play-button-on-pause videoPlayer-container-radius"
+      class="video-js vjs-fluid vjs-big-play-centered vjs-show-big-play-button-on-pause"
     />
   </div>
 </template>
 
 <script>
 import videojs from 'video.js'
+
 import videojsBrand from 'videojs-brand'
 import fa from 'video.js/dist/lang/fa.json'
 import { PlayerSourceList } from 'src/models/PlayerSource'
@@ -155,41 +156,48 @@ export default {
 }
 </script>
 
-<style lang="scss">
-.videoPlayer-container-radius{
- border-radius: inherit;
-}
-.vjs-poster{
+<style lang="scss" scoped>
+.video-js-style{
   border-radius: inherit;
-}
-#my-video_html5_api{
-  border-radius: inherit;
-}
-#my-video .vjs-big-play-button {
-  border: none;
-  border-radius: inherit;
-  width: 80px;
-  height: 80px;
-  line-height: 2em;
-  top: 50%;
-  margin-left: -1em;
-  color: #fff;
-  background-color: #FFB74D;
-  box-shadow: -2px -4px 10px rgba(255, 255, 255, 0.6), 2px 4px 10px rgba(112, 108, 162, 0.05);
-  font-size: 52px;
-  -moz-border-radius: 100px;
-  -webkit-border-radius: 100px;
-  margin-top: -0.817em;
-}
+  &:deep(.video-js){
+    border-radius: inherit;
+    #my-video_html5_api {
+      border-radius: inherit;
+    }
+    .vjs-poster{
+      border-radius: inherit !important;
+    }
 
-.video-js .vjs-big-play-button .vjs-icon-placeholder:before {
-  content: "\f4cd";
-  left: -12px;
-  top: -10px;
-  font-size: 110px;
-  font-family: iconsax;
-  border: none !important;
-  box-shadow: none !important;
+   .vjs-big-play-button {
+      border: none;
+      border-radius: inherit;
+      width: 80px;
+      height: 80px;
+      line-height: 2em;
+      top: 50%;
+     right: 40%;
+      margin-left: -1em;
+      color: #fff;
+      background-color: #ffb74d;
+      box-shadow: -2px -4px 10px rgba(255, 255, 255, 0.6),
+      2px 4px 10px rgba(112, 108, 162, 0.05);
+      font-size: 52px;
+      -moz-border-radius: 100px;
+      -webkit-border-radius: 100px;
+      margin-top: -0.817em;
+     .vjs-icon-placeholder{
+        &:before{
+          content: "\f4cd";
+          left: -15px;
+          top: -10px;
+          font-size: 110px;
+          font-family: iconsax;
+          border: none !important;
+          box-shadow: none !important;
+        }
+      }
+    }
+  }
 }
 
 .vjs-control-bar {

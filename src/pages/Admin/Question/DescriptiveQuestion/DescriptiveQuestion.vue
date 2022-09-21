@@ -43,6 +43,7 @@
         :major-list="majorList"
         :authorship-dates-list="authorshipDatesList"
         :question-authors-list="questionAuthorsList"
+        :question-target-list="questionTargetList"
         :buffer="true"
         @gradeSelected="getLessonsList"
         @groupSelected="getLessonsList"
@@ -115,6 +116,7 @@ export default {
     this.getPageReady()
     this.getGradesList()
     this.loadQuestionAuthors()
+    this.loadQuestionTargets()
     this.loadAuthorshipDates()
     this.loadMajorList()
   },
@@ -280,6 +282,11 @@ export default {
 [dir="rtl"] .filepond--root {
   text-align: left #{"/* rtl:ignore */"} !important ;
   direction: ltr #{"/* rtl:ignore */"} !important;
+}
+.filepond--file-info {
+  transform: none !important;
+  margin-left: 2.5em #{"/* rtl:ignore */"} !important;
+  margin-right: 0.5em #{"/* rtl:ignore */"} !important;
 }
 </style>
 <!--// USED IN MANY OTHER COMPONENTS-->

@@ -6,7 +6,7 @@
         <div
           class="total-shopping-cart price-section"
         >
-          <div class="title">جمع سبد خرید{{ `(${cart.cartItems?.list?.length})` }}</div>
+          <div class="title">جمع سبد خرید{{ `(${cart.count})` }}</div>
           <div
             v-if="loading"
             class="loading-spinner"
@@ -25,27 +25,30 @@
           </div>
         </div>
 
-        <div class="wallet-credit price-section">
-          <div class="title">استفاده از کیف پول</div>
-          <div
-            v-if="loading"
-            class="loading-spinner"
-          >
-            <q-spinner-tail
-              color="orange"
-              size="2em"
-            />
-          </div>
-          <div
-            v-else
-            class="price"
-          >
-            {{ amountUsingWallet }}
-            <span class="iran-money-unit">تومان</span>
-          </div>
-        </div>
+        <!--        <div class="wallet-credit price-section">-->
+        <!--          <div class="title">استفاده از کیف پول</div>-->
+        <!--          <div-->
+        <!--            v-if="loading"-->
+        <!--            class="loading-spinner"-->
+        <!--          >-->
+        <!--            <q-spinner-tail-->
+        <!--              color="orange"-->
+        <!--              size="2em"-->
+        <!--            />-->
+        <!--          </div>-->
+        <!--          <div-->
+        <!--            v-else-->
+        <!--            class="price"-->
+        <!--          >-->
+        <!--            {{ amountUsingWallet}}-->
+        <!--            <span class="iran-money-unit">تومان</span>-->
+        <!--          </div>-->
+        <!--        </div>-->
 
-        <div class="purchase-profit price-section">
+        <div
+          v-if="discountInPercent"
+          class="purchase-profit price-section"
+        >
           <div class="title">سود شما از خرید</div>
           <div
             v-if="loading"
@@ -68,26 +71,26 @@
         <q-separator class="invoice-separator" />
       </q-card-section>
 
-      <q-card-section class="invoice-coupon-section invoice-cart-section">
-        <div class="enter-coupon-code">
-          <div class="title">کد تخفیف:</div>
+      <!--      <q-card-section class="invoice-coupon-section invoice-cart-section">-->
+      <!--        <div class="enter-coupon-code">-->
+      <!--          <div class="title">کد تخفیف:</div>-->
 
-          <q-input
-            v-model="couponValue"
-            type="text"
-            label="کد تخفیف خود را وارد کنید"
-            class="coupon-input"
-            outlined
-          >
-            <template v-slot:append>
-              <q-btn label="ثبت"
-                     flat />
-            </template>
-          </q-input>
-        </div>
+      <!--          <q-input-->
+      <!--            v-model="couponValue"-->
+      <!--            type="text"-->
+      <!--            label="کد تخفیف خود را وارد کنید"-->
+      <!--            class="coupon-input"-->
+      <!--            outlined-->
+      <!--          >-->
+      <!--            <template v-slot:append>-->
+      <!--              <q-btn label="ثبت"-->
+      <!--                     flat />-->
+      <!--            </template>-->
+      <!--          </q-input>-->
+      <!--        </div>-->
 
-        <q-separator class="invoice-separator" />
-      </q-card-section>
+      <!--        <q-separator class="invoice-separator" />-->
+      <!--      </q-card-section>-->
 
       <q-card-section class="payment-section invoice-cart-section">
         <div class="final-price price-section">
@@ -131,58 +134,44 @@
             class="banks-gateway-list row"
           >
             <div class="bank-gateway-container col-lg-6  col-md-12 col-sm-6 col-xs-12">
-              <div class="bank-gateway">
+              <div
+                class="bank-gateway"
+                @click="clickOnGateway"
+              >
                 <div class="bank-icon-container">
                   <q-img
-                    src="https://alaatv.com/acm/extra/payment/gateway/parsian-logo.png"
+                    src="https://nodes.alaatv.com/aaa/landing/Banklogos/saman.png"
                     class="bank-icon"
                   />
                 </div>
-
-                <q-radio
+                <q-checkbox
                   v-model="selectedBank"
-                  val="2"
                   dir="ltr"
                   label="بانک سامان"
-                  class="select-bank-radio-button"
-                />
-              </div>
-            </div>
-
-            <div class="bank-gateway-container col-lg-6  col-md-12 col-sm-6 col-xs-12">
-              <div class="bank-gateway">
-                <div class="bank-icon-container">
-                  <q-img
-                    src="https://alaatv.com/acm/extra/payment/gateway/parsian-logo.png"
-                    class="bank-icon"
-                  />
-                </div>
-                <q-radio
-                  v-model="selectedBank"
-                  val="1"
-                  dir="ltr"
-                  label="بانک سامان"
-                  class="select-bank-radio-button"
+                  checked-icon="radio_button_checked"
+                  unchecked-icon="radio_button_unchecked"
+                  :class="{'checked-check-box': selectedBank}"
                 />
               </div>
             </div>
           </div>
 
-          <div class="payment-description">
-            <p class="title">توضیحات</p>
+          <!--          <div class="payment-description">-->
+          <!--            <p class="title">توضیحات</p>-->
 
-            <q-input
-              v-model="shoppingDescribtion"
-              type="text"
-              label="اگر توضیحی درباره ی محصول دارید اینجا بنویسید"
-              class="payment-description-input"
-              outlined
-            />
-          </div>
+          <!--            <q-input-->
+          <!--              v-model="shoppingDescription"-->
+          <!--              type="text"-->
+          <!--              label="اگر توضیحی درباره ی محصول دارید اینجا بنویسید"-->
+          <!--              class="payment-description-input"-->
+          <!--              outlined-->
+          <!--            />-->
+          <!--          </div>-->
 
           <div class="payment-button-container payment-button-container-desktop">
             <div
               class="payment-button payment-button-desktop-view"
+              :class="{ 'payment-button-disable': !selectedBank}"
               @click="payment"
             >
               پرداخت و ثبت نهایی
@@ -259,6 +248,7 @@
       </div>
       <div
         class="payment-button payment-button-mobile-view"
+        :class="{ 'payment-button-disable': !selectedBank}"
         @click="payment"
       >
         پرداخت
@@ -284,25 +274,18 @@ export default {
 
   data() {
     return {
-      reviewResponse: {},
       couponValue: null,
-      shoppingDescription: null,
       userEnteredLoginInfo: {
         password: '',
         mobile: ''
       },
-      selectedBank: null,
-      gatewayRedirectAddress: '',
-      amountUsingWallet: '',
-      shoppingDescribtion: '',
+      selectedBank: true,
+      shoppingDescription: '',
       loading: false
     }
   },
 
-  created() {
-    this.loading = true
-    this.loadData()
-  },
+  created() {},
 
   computed: {
     cart() {
@@ -310,15 +293,15 @@ export default {
     },
 
     totalFinalPrice() {
-      return this.getPriceFormat(this.cart.price?.final)
+      return this.getPriceFormat('final') ? this.getPriceFormat('final') : 0
     },
 
     totalBasePrice() {
-      return this.getPriceFormat(this.cart.price?.base)
+      return this.getPriceFormat('base')
     },
 
     totalDiscount() {
-      return this.getPriceFormat(this.cart.price?.discount)
+      return this.getPriceFormat('discount')
     },
 
     discountInPercent() {
@@ -327,21 +310,35 @@ export default {
 
     isUserLogin() {
       return this.$store.getters['Auth/isUserLogin']
+    },
+
+    amountUsingWallet () {
+      return this.cart.pay_by_wallet.toLocaleString()
     }
   },
 
   methods: {
-    loadData() {
-      this.reviewResponse = this.data
-      this.amountUsingWallet = this.getPriceFormat(this.reviewResponse.pay_by_wallet)
-      this.gatewayRedirectAddress = this.reviewResponse.redirect_to_gateway
-      this.loading = false
+    cartReview() {
+      this.$store.commit('loading/loading', true)
+      this.$store.dispatch('Cart/reviewCart')
+        .then(() => {
+          this.$store.dispatch('loading/overlayLoading', false)
+        })
     },
 
     payment() {
-      if (this.gatewayRedirectAddress) {
-        window.location.href = this.gatewayRedirectAddress
+      if (!this.selectedBank) {
+        return
       }
+      this.$store.commit('loading/loading', true)
+
+      this.$store.dispatch('Cart/paymentCheckout')
+        .then((response) => {
+          window.open(response.data.data.url, '_self')
+          this.$store.commit('loading/loading', false)
+        }).catch(() => {
+          this.$store.commit('loading/loading', false)
+        })
     },
 
     login() {
@@ -353,25 +350,26 @@ export default {
         })
     },
 
-    getPriceFormat(price) {
-      if (!price && price !== 0) {
-        return
-      }
-      return price.toLocaleString()
-    }
+    getPriceFormat(priceKey) {
+      return this.cart.price.toman(priceKey, null)
+    },
 
+    clickOnGateway() {
+      this.selectedBank = !this.selectedBank
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .invoice-container {
-  margin-top: 68px;
   margin-left: 30px;
 
   @media screen and (max-width: 1023px) {
     margin-left: 0;
-    margin-top: 0;
+  }
+  @media screen and (max-width: 599px) {
+    margin-bottom: 70px;
   }
 
   .invoice-cart {
@@ -465,6 +463,7 @@ export default {
           display: flex;
           align-items: center;
           margin-bottom: 20px;
+          justify-content: space-between;
 
           @media screen and (max-width: 1439px) {
             margin-bottom: 14px;
@@ -486,6 +485,7 @@ export default {
             letter-spacing: -0.03em;
             color: #23263B;
             margin-right: 16px;
+            min-width: 72px;
 
             @media screen and (max-width: 1439px) {
               margin-right: 4px;
@@ -673,6 +673,30 @@ export default {
                 border: 1.3px solid #E7ECF4;
                 border-radius: 8px;
                 padding: 8px;
+                cursor: pointer;
+
+                .checked-check-box {
+                  &:deep(.q-icon) {
+                    color: #FFB74D;
+
+                  }
+                }
+
+                &:deep(.q-checkbox__inner  ) {
+                  width: 20px;
+                }
+                &:deep(.q-checkbox__icon-container ) {
+                  width: 20px;
+                }
+
+                &:deep(.q-checkbox__label) {
+                  font-style: normal;
+                  font-weight: 400;
+                  font-size: 11px;
+                  line-height: 19px;
+                  letter-spacing: -0.05em;
+                  color: #23263B;
+                }
 
                 @media screen and (max-width: 1439px) {
                   width: 100%;
@@ -707,14 +731,6 @@ export default {
                     color: #FFB74D;
                   }
 
-                  &:deep(.q-radio__label) {
-                    font-style: normal;
-                    font-weight: 400;
-                    font-size: 11px;
-                    line-height: 19px;
-                    letter-spacing: -0.05em;
-                    color: #23263B;
-                  }
                 }
               }
             }
@@ -910,6 +926,11 @@ export default {
       color: #FFFFFF;
       cursor: pointer;
       width: 100%;
+
+      &.payment-button-disable {
+        opacity: 0.5;
+        cursor: default;
+      }
 
       @media screen and (max-width: 599px) {
         width: 104px;

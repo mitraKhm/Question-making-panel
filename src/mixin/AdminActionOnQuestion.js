@@ -21,7 +21,8 @@ const AdminActionOnQuestion = {
       lessonsList: null,
       majorList: null,
       authorshipDatesList: null,
-      questionAuthorsList: null
+      questionAuthorsList: null,
+      questionTargetList: null
     }
   },
   computed: {
@@ -222,7 +223,9 @@ const AdminActionOnQuestion = {
       this.question.loading = false
     },
     redirectToShowPage (questionId) {
-      this.$router.push({ name: 'Admin.Question.Show', params: { question_id: questionId } })
+      const routeData = this.$router.resolve({ name: 'Admin.Question.Show', params: { question_id: questionId } })
+      window.open(routeData.href, '_blank')
+      window.location.reload()
     },
     redirectToEditPage () {
       this.$router.push({ name: 'Admin.Question.Edit', params: { question_id: this.$route.params.question_id } })
@@ -426,6 +429,12 @@ const AdminActionOnQuestion = {
       this.$axios.get(API_ADDRESS.option.base + '?type=reference_type')
         .then((response) => {
           this.questionAuthorsList = response.data.data
+        })
+    },
+    loadQuestionTargets () {
+      this.$axios.get(API_ADDRESS.option.base + '?type=targets_type')
+        .then((response) => {
+          this.questionTargetList = response.data.data
         })
     },
     loadAuthorshipDates () {

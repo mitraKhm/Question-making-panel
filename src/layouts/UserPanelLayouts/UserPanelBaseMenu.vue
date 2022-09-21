@@ -99,18 +99,18 @@ export default {
     return {
       clickedItem: null,
       titlesList: [
-        {
-          title: 'داشبورد',
-          icon: 'isax:home',
-          routeName: 'dashboard',
-          permission: 'all',
-          active: false,
-          children: []
-        },
+        // {
+        //   title: 'داشبورد',
+        //   icon: 'isax:home',
+        //   routeName: 'dashboard',
+        //   permission: 'all',
+        //   active: false,
+        //   children: []
+        // },
         {
           title: 'آزمون ها',
           icon: 'isax:task-square',
-          routeName: 'dashboard',
+          routeName: 'User.Exam.List',
           permission: 'all',
           active: false,
           children: []
@@ -119,6 +119,14 @@ export default {
           title: 'سفارش‌ های من',
           icon: 'isax:clipboard-text',
           routeName: 'User.MyOrders',
+          permission: 'all',
+          active: false,
+          children: []
+        },
+        {
+          title: 'تیکت',
+          icon: 'isax:clipboard-text',
+          routeName: 'User.Ticket.Index',
           permission: 'all',
           active: false,
           children: []

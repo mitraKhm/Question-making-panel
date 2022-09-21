@@ -49,6 +49,7 @@
           :major-list="majorList"
           :authorship-dates-list="authorshipDatesList"
           :question-authors-list="questionAuthorsList"
+          :question-target-list="questionTargetList"
           @gradeSelected="getLessonsList"
           @groupSelected="getLessonsList"
           @attach="attachExam"
@@ -73,7 +74,9 @@
 </template>
 
 <script>
+import BtnBox from 'components/Question/QuestionPage/BtnBox'
 /* eslint-disable no-var */
+import LogListComponent from 'components/QuestionBank/EditQuestion/Log/LogList'
 import { computed, defineAsyncComponent } from 'vue'
 import { Question } from 'src/models/Question'
 import Navbar from 'components/Question/QuestionPage/Create/textMode/Navbar'
@@ -82,12 +85,10 @@ import AdminActionOnQuestion from 'src/mixin/AdminActionOnQuestion'
 import { QuestionType, TypeList } from 'src/models/QuestionType'
 import AttachExam from 'components/Question/QuestionPage/AttachExam/AttachExam'
 import StatusChange from 'components/Question/QuestionPage/StatusChange'
-import BtnBox from 'components/Question/QuestionPage/BtnBox'
 import { ExamList } from 'src/models/Exam'
 import { QuestSubcategoryList } from 'src/models/QuestSubcategory'
 import { QuestionStatusList } from 'src/models/QuestionStatus'
 import ImagePanel from 'components/Question/QuestionPage/ImagePanel'
-import LogListComponent from 'components/QuestionBank/EditQuestion/Log/LogList'
 import { QuestCategoryList } from 'src/models/QuestCategory'
 import QuestionIdentifier from 'components/Question/QuestionPage/QuestionIdentifier'
 import mixinTree from 'src/mixin/Tree'
@@ -135,6 +136,7 @@ export default {
     this.getQuestionStatus()
     this.getGradesList()
     this.loadQuestionAuthors()
+    this.loadQuestionTargets()
     this.loadAuthorshipDates()
     this.loadMajorList()
   },
