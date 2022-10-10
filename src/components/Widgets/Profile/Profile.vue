@@ -1,27 +1,61 @@
 <template>
   <div class="profile-page-widget">
-    <div class="profile-card-title">اطلاعات کاربری</div>
+    <div class="profile-card-title"
+         :hidden="$q.screen.lt.md">اطلاعات کاربری</div>
+    <div v-if="$q.screen.lt.md"
+         class="flex justify-start profile-btn">
+      <q-btn
+        color="dark"
+        flat
+      >
+        <svg width="22"
+             height="22"
+             viewBox="0 0 22 22"
+             fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <path d="M13.228 5.43555L18.7922 10.9997L13.228 16.5639"
+                stroke="#434765"
+                stroke-width="1.5"
+                stroke-miterlimit="10"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
+          <path d="M3.2085 11H18.636"
+                stroke="#434765"
+                stroke-width="1.5"
+                stroke-miterlimit="10"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
+        </svg>
+        <div class="profile-card-title-2">
+          اطلاعات کاربری
+        </div>
+      </q-btn>
+    </div>
 
-    <div class="profile-card">
+    <div class="profile-card relative-position">
       <entity-crud-form-builder
         ref="EntityCrudFormBuilder"
         v-model:value="inputs"
       />
 
       <div class="card-actions">
-        <div
-          class="card-actions-button dont-save-button"
+        <div class="card-actions-button dont-save-button"
+             @click="goToDashboard()"
         >
           انصراف
         </div>
 
-        <div
-          class="card-actions-button save-button"
-          @click="edit"
+        <div class="card-actions-button save-button"
+             @click="edit"
         >
           ذخیره
         </div>
       </div>
+
+      <q-inner-loading :showing="loading"
+                       label="کمی صبر کنید..."
+      />
+
     </div>
   </div>
 </template>
@@ -38,19 +72,20 @@ export default {
 
   data () {
     return {
+      loading: false,
       inputs: [
-        { type: 'input', name: 'first_name', responseKey: 'first_name', label: 'نام', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
-        { type: 'input', name: 'last_name', responseKey: 'last_name', label: 'نام خانوادگی', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
-        { type: 'input', name: 'national_code', responseKey: 'national_code', label: 'کدملی', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
-        { type: 'select', name: 'gender', responseKey: 'gender.title', label: 'جنسیت', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
-        { type: 'input', name: 'mobile', responseKey: 'mobile', label: 'شماره موبایل', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
-        { type: 'input', name: 'email', responseKey: 'email', label: 'ایمیل', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
-        { type: 'input', value: 'دانش آموز', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', label: 'نوع کاربری', placeholder: ' ', disable: true },
-        { type: 'select', name: 'major', label: 'رشته تحصیلی', responseKey: 'major.title', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
-        { type: 'select', name: 'grade', responseKey: 'grade.title', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', label: 'پایه تحصیلی', placeholder: ' ' },
-        { type: 'select', name: 'province', responseKey: 'province.title', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', label: 'استان', placeholder: ' ' },
-        { type: 'select', name: 'city', responseKey: 'city.title', col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', label: 'شهر', placeholder: ' ' },
-        { type: 'input', name: 'school', responseKey: 'school', label: 'مدرسه', options: {}, col: 'col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' }
+        { type: 'input', name: 'first_name', responseKey: 'first_name', label: 'نام', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
+        { type: 'input', name: 'last_name', responseKey: 'last_name', label: 'نام خانوادگی', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
+        { type: 'input', name: 'national_code', responseKey: 'national_code', label: 'کدملی', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
+        { type: 'select', name: 'gender', responseKey: 'gender.title', dropdownIcon: 'isax:arrow-down-1', label: 'جنسیت', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
+        { type: 'input', name: 'mobile', responseKey: 'mobile', label: 'شماره موبایل', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
+        { type: 'input', name: 'email', responseKey: 'email', label: 'ایمیل', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
+        { type: 'input', value: 'دانش آموز', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', label: 'نوع کاربری', placeholder: ' ', disable: true },
+        { type: 'select', name: 'major', label: 'رشته تحصیلی', responseKey: 'major.title', dropdownIcon: 'isax:arrow-down-1', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' },
+        { type: 'select', name: 'grade', responseKey: 'grade.title', dropdownIcon: 'isax:arrow-down-1', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', label: 'پایه تحصیلی', placeholder: ' ' },
+        { type: 'select', name: 'province', responseKey: 'province.title', dropdownIcon: 'isax:arrow-down-1', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', label: 'استان', placeholder: ' ' },
+        { type: 'select', name: 'city', responseKey: 'city.title', dropdownIcon: 'isax:arrow-down-1', col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', label: 'شهر', placeholder: ' ' },
+        { type: 'input', name: 'school', responseKey: 'school', label: 'مدرسه', options: {}, col: 'col-xs-12 col-sm-6 col-md-4 col-lg-4 col-xl-4', placeholder: ' ' }
       ],
       find: null,
       genders: null,
@@ -87,11 +122,21 @@ export default {
 
   methods: {
     onLoadPage () {
+      this.loading = true
       this.getFormData()
         .then(() => {
+          this.loading = false
           this.setInputsInitData()
           this.disableFilledInputs()
         })
+        .catch(() => {
+          this.loading = false
+          this.goToDashboard()
+        })
+    },
+
+    goToDashboard () {
+      this.$router.push({ name: 'User.Dashboard' })
     },
 
     disableFilledInputs() {
@@ -177,16 +222,17 @@ export default {
     },
 
     edit () {
+      this.loading = true
       const formData = this.$refs.EntityCrudFormBuilder.getFormData()
 
       // console.log('formData', formData)
       this.$axios.put(API_ADDRESS.user.edit(this.user.id), formData)
-        .then((resp) => {
-          // console.log(resp)
+        .then(() => {
+          this.loading = false
         })
-        // .catch((error) => {
-        //   console.log(error)
-        // })
+        .catch(() => {
+          this.loading = false
+        })
     },
 
     setProvinceValue(title) {
@@ -235,32 +281,50 @@ export default {
       margin-bottom: 16px;
     }
 
-    @media only screen and (max-width: 1023px) {
-      font-size: 14px;
-      line-height: 22px;
-      margin-bottom: 20px;
-    }
-
-    @media only screen and (max-width: 599px) {
-      font-size: 14px;
-      line-height: 22px;
-      margin-bottom: 16px;
+    //@media only screen and (max-width: 1023px) {
+    //  font-size: 14px;
+    //  line-height: 22px;
+    //  margin-bottom: 20px;
+    //}
+    //
+    //@media only screen and (max-width: 599px) {
+    //  font-size: 14px;
+    //  line-height: 22px;
+    //  margin-bottom: 16px;
+    //}
+  }
+  .profile-btn {
+    margin-bottom: 12px;
+    :deep(.q-btn) {
+      font-weight: 600 !important;
+      font-size: 16px !important;
+      line-height: 25px !important;
+      .profile-card-title-2 {
+        padding-left: 8px;
+      }
     }
   }
-
   .profile-card {
+
+    :deep(.outsideLabel) {
+        margin-left: 12px;
+      @media only screen and (max-width: 599px) {
+        margin-left: 0;
+      }
+    }
     background: #FFFFFF;
     box-shadow: -2px -4px 10px rgba(255, 255, 255, 0.6), 2px 4px 10px rgba(112, 108, 162, 0.05);
     border-radius: 16px;
-    padding: 30px 28px;
-
+    padding: 45px 30px 30px 45px;
+    //padding-left: 45px;
     @media only screen and (max-width: 1439px) {
       padding: 20px 18px;
     }
 
     @media only screen and (max-width: 1023px) {
-      padding: 16px 8px;
+      //padding: 16px 8px;
       border-radius: 12px;
+      padding: 35px 20px 20px 35px;
     }
 
     @media only screen and (max-width: 599px) {
@@ -308,7 +372,7 @@ export default {
       }
 
       .q-field__append {
-        padding: 0;
+        //padding: 0;
       }
     }
 

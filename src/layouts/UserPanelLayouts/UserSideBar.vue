@@ -25,7 +25,10 @@
             </svg>
           </div>
         </div>
-        <div class="profile-detail-info">
+        <div
+          v-if="isUserLogin"
+          class="profile-detail-info"
+        >
           <div class="info-name">{{user.full_name}}</div>
           <div class="info-phoneNumber">{{user.mobile}}</div>
         </div>
@@ -82,6 +85,9 @@ export default {
         return this.$store.getters['Auth/user']
       }
       return new User()
+    },
+    isUserLogin() {
+      return this.$store.getters['Auth/isUserLogin']
     },
     showMenuItem () {
       return (item) => {
@@ -144,8 +150,11 @@ export default {
           height: 56px;
         }
         .profile-photo-img {
+          width: 100%;
+          height: 100%;
           .q-img {
             border-radius: 16px;
+            height: 100%;
           }
         }
         .profile-photo-badge {

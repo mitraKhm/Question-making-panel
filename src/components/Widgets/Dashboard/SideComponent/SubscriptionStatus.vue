@@ -5,15 +5,16 @@
     </div>
     <div class="subscription-type">
       <div class="subscription-type-title">نوع اشتراک:</div>
-      <div class="subscription-type-value">
+      <div v-if="subscribe"
+           class="subscription-type-value">
         <span class="subscription-type-value-base">
-          معمولی
+          {{subscribe.title}}
         </span>
         <span class="subscription-type-value-description">
-          (سه‌ماهه) -
+          ({{subscribe.length + ' روزه'}}) -
         </span>
         <span class="subscription-type-value-duration">
-          55 روز باقیمانده
+          {{parseInt(subscribe.length) - subscribe.made.length}} روز باقیمانده
         </span>
       </div>
     </div>
@@ -39,7 +40,8 @@
             محدودیت ساخت آزمون
           </div>
           <highcharts class="flex flex-center"
-                      :options="chartOptionsExam" />
+                      :options="chartOptionsExam"
+          />
         </q-tab-panel>
         <q-tab-panel name="pdf"
                      class="subscription-status-test-tab">
@@ -47,7 +49,8 @@
             محدودیت دانلود PDF
           </div>
           <highcharts class="flex flex-center"
-                      :options="chartOptionsPdf" />
+                      :options="chartOptionsPdf"
+          />
         </q-tab-panel>
       </q-tab-panels>
     </div>
@@ -115,7 +118,7 @@ export default {
           },
           verticalAlign: 'middle',
           floating: true,
-          text: 'آزمون باقی‌مانده'
+          text: ' '
         },
         series: [{
           id: 'idData',
@@ -168,7 +171,7 @@ export default {
           },
           verticalAlign: 'middle',
           floating: true,
-          text: 'PDF باقی‌مانده'
+          text: ' '
         },
         series: [{
           id: 'idData',
@@ -181,19 +184,34 @@ export default {
   },
   watch: {
     subscribe () {
-      this.loadChartData()
+      this.updateChartsOptions()
     }
   },
+  created() {
+    this.updateChartsOptions()
+  },
   methods: {
-    loadChartData () {
+    updateChartsOptions () {
+      this.updateChartOptionsExam()
+      this.updateChartOptionsPdf()
+    },
+    updateChartOptionsExam () {
       if (!this.subscribe) {
         return
       }
 
       this.chartOptionsExam.plotOptions.pie.endAngle = ((this.subscribe.abilities_n.exam - this.subscribe.made.exam) * 360) / this.subscribe.abilities_n.exam
+      this.chartOptionsExam.title.text = `${((this.subscribe.abilities_n.exam - this.subscribe.made.exam) * 360) / this.subscribe.abilities_n.pdf_questions}<br>آزمون باقی‌مانده`
       this.chartOptionsExam.series[0].data[0].y = (this.subscribe.abilities_n.exam - this.subscribe.made.exam)
+    },
+    updateChartOptionsPdf () {
+      if (!this.subscribe) {
+        return
+      }
+
       this.chartOptionsPdf.plotOptions.pie.endAngle = ((this.subscribe.abilities_n.pdf_questions - this.subscribe.made.pdf_questions) * 360) / this.subscribe.abilities_n.pdf_questions
-      this.chartOptionsPdf.series[0].data[0].y = (this.subscribe.abilities_n.pdf_questions - this.subscribe.made.pdf_questions)
+      this.chartOptionsPdf.title.text = `PDF ${((this.subscribe.abilities_n.pdf_questions - this.subscribe.made.pdf_questions) * 360) / this.subscribe.abilities_n.pdf_questions} باقی‌مانده`
+      this.chartOptionsPdf.series[0].data[0].y = ((this.subscribe.abilities_n.pdf_questions - this.subscribe.made.pdf_questions) * 360) / this.subscribe.abilities_n.pdf_questions
     }
   }
 }
