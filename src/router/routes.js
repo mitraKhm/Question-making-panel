@@ -100,6 +100,8 @@ const routes = [
       layoutRightDrawer: false,
       layoutFooter: false,
       layoutHeaderCustomClass: '',
+      layoutBreadcrumbsElements: [],
+      layoutBreadcrumbs: false,
       layoutLeftDrawerCustomClass: 'main-layout-left-drawer',
       layoutPageContainerCustomClass: 'main-layout-container'
     },
@@ -174,6 +176,7 @@ const routes = [
           {
 
             path: '',
+            name: 'User.First.Layout',
             component: () => import('layouts/UserPanelLayouts/UserPanelLayout'),
             children: [
               {
@@ -198,11 +201,6 @@ const routes = [
                 component: () => import('pages/User/exam/List')
               },
               {
-                name: 'User.Exam.Download',
-                path: 'download_exam',
-                component: () => import('pages/User/exam/Download/Download')
-              },
-              {
                 path: 'ticket',
                 component: () => import('layouts/bareLayout.vue'),
                 name: 'User.Ticket',
@@ -223,13 +221,57 @@ const routes = [
                     component: () => import('pages/User/Ticket/Create.vue')
                   }
                 ]
+              },
+              {
+                path: '/onlineQuiz/results/:exam_id/:user_exam_id',
+                name: 'user.exam.results',
+                component: () => import('pages/User/exam/Result')
+              }
+            ]
+          },
+          {
+            path: 'download_exam/:examId',
+            name: 'User.Download',
+            component: () => import('layouts/boxedLayout'),
+            children: [
+              {
+                name: 'User.Exam.Download',
+                path: '',
+                component: () => import('pages/User/exam/Download/Download')
               }
             ]
           },
           {
             path: 'exam/create',
-            name: 'User.Create.Exam',
-            component: () => import('pages/User/exam/Create/Create')
+            name: 'User.Create',
+            component: () => import('layouts/boxedLayout'),
+            children: [
+              {
+                path: '',
+                name: 'User.Create.Exam',
+                layoutConfig: {
+                  layoutBreadcrumbs: {
+                    separator: 'isax:arrow-right-3'
+                  },
+                  layoutBreadcrumbsElements: [
+                    {
+                      title: 'صفحه اصلی',
+                      route: {
+                        name: 'HomePage'
+                      }
+                    },
+                    {
+                      title: 'آزمون ها',
+                      route: {
+                        name: 'User.Exam.List'
+                      }
+                    },
+                    { title: 'ساخت آزمون' }
+                  ]
+                },
+                component: () => import('pages/User/exam/Create/Create')
+              }
+            ]
           }
         ]
       },
@@ -537,12 +579,6 @@ const routes = [
         ]
       },
       {
-        path: '/onlineQuiz/results/:exam_id/:user_exam_id',
-        name: 'user.exam.results',
-        component: () => import('pages/User/exam/Result'),
-        middleware: [auth]
-      },
-      {
         path: '/faq',
         name: 'faq',
         component: () => import('src/pages/CommonQuestions/list'),
@@ -596,7 +632,21 @@ const routes = [
       },
       {
         path: '/onlineQuiz/konkoorView/:quizId',
-        name: 'konkoorView',
+        name: 'onlineQuiz.konkoorView',
+        component: () => import('pages/User/exam/participate/konkoorView'),
+        layoutConfig: {
+          layoutHeaderVisible: true,
+          layoutHeaderType: 'quiz',
+          layoutLeftDrawerVisible: true,
+          layoutLeftSideBarType: 'quiz'
+        },
+        meta: {
+          middlewares: [auth]
+        }
+      },
+      {
+        path: '/onlineQuiz/konkoorView/personal/:quizId',
+        name: 'onlineQuiz.konkoorView.personal',
         component: () => import('pages/User/exam/participate/konkoorView'),
         layoutConfig: {
           layoutHeaderVisible: true,
@@ -675,8 +725,32 @@ const routes = [
   // but you can also remove it
   {
     path: '/:catchAll(.*)*',
-    component:
-  () => import('pages/Error404.vue')
+    component: () => import('layouts/MainLayout.vue'),
+    layoutConfig: {
+      layoutHeaderVisible: true,
+      layoutHeaderType: 'default',
+      layoutLeftDrawerCustomClass: 'main-layout-left-drawer',
+      layoutPageContainerCustomClass: 'main-layout-container'
+    },
+    children: [
+      {
+        path: '',
+        name: '404',
+        layoutConfig: {
+          layoutHeaderVisible: true,
+          layoutHeaderType: 'default',
+          layoutLeftDrawerVisible: false,
+          layoutLeftDrawerOverlay: true
+        },
+        component: () => import('layouts/UserPanelLayouts/UserPanelBareLayout'),
+        children: [{
+          path: '',
+          name: 'notFound',
+          component: () => import('pages/Error404.vue')
+        }
+        ]
+      }
+    ]
   }
 ]
 

@@ -1,14 +1,16 @@
 <template>
-  <div class="row user-panel-layout">
+  <div class="user-panel-layout"
+       :class="{'full-content-size' : !hasNavigationBar}"
+  >
     <div
       v-if="hasNavigationBar"
-      class="user-side-bar col-xl-3 col-lg-3 col-md-3"
+      class="side-bar-box"
     >
-      <user-side-bar />
+      <sticky-both-sides>
+        <user-side-bar />
+      </sticky-both-sides>
     </div>
-
-    <div class=" user-panel-content"
-         :class="hasNavigationBar ? 'col-xl-9 col-lg-9 col-md-9 col-12 ' : 'col-12'"
+    <div class="user-panel-content"
     >
       <Router :include="keepAliveComponents" />
     </div>
@@ -19,10 +21,15 @@
 import UserSideBar from 'layouts/UserPanelLayouts/UserSideBar'
 import KeepAliveComponents from 'assets/js/KeepAliveComponents'
 import Router from 'src/router/Router'
+import StickyBothSides from 'components/Utils/StickyBothSides'
 
 export default {
   name: 'UserPanelLayout',
-  components: { UserSideBar, Router },
+  components: {
+    UserSideBar,
+    Router,
+    StickyBothSides
+  },
   data () {
     return {
       keepAliveComponents: KeepAliveComponents
@@ -57,9 +64,34 @@ export default {
 
 <style scoped lang="scss">
 .user-panel-layout {
-  .user-side-bar {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: 277px 1050px;
+  column-gap:35px;
+  @media screen and (max-width: 1439px) {
+    grid-template-columns: 220px 708px;
+    column-gap: 32px
+  }
+  @media screen and (max-width: 1023px) {
+    grid-template-columns: 100%;
+  }
+
+  &.full-content-size{
+    grid-template-columns: 1362px;
+    @media screen and (max-width: 1439px) {
+      grid-template-columns: 964px;
+    }
     @media screen and (max-width: 1023px) {
-     display: none;
+      grid-template-columns: 540px;
+    }
+    @media screen and (max-width: 599px) {
+      grid-template-columns: 100%;
+    }
+  }
+
+  .side-bar-box{
+    @media screen and (max-width: 1023px){
+      display: none;
     }
   }
 }

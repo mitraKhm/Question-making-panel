@@ -35,6 +35,7 @@
             </ul>
             <q-btn class="package-item-action-btn"
                    label="شروع کنید"
+                   unelevated
                    @click="subscribe(item.id)"
             />
           </div>
@@ -237,6 +238,16 @@ export default defineComponent({
             border-radius: 8px;
             margin-top: 40px;
             color: #FFFFFF;
+          }
+
+          @media screen and (max-width: 1023px) {
+            margin: 40px 0 60px;
+          }
+          @media screen and (max-width: 600px) {
+            margin: 30px 0 60px;
+          }
+          @media screen and (max-width: 390px) {
+            margin: 40px 0 60px;
           }
         }
       }

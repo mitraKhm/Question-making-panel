@@ -27,11 +27,8 @@ export default {
                 }
               ],
               options: {
-                boxed: true,
-                boxedWidth: 1362,
-                style: {
-                  marginTop: '10px'
-                }
+                // boxed: true,
+                // boxedWidth: 1362
               }
             },
             {
@@ -45,11 +42,8 @@ export default {
                 }
               ],
               options: {
-                boxed: true,
-                boxedWidth: 1362,
-                style: {
-                  marginTop: '10px'
-                }
+                // boxed: true,
+                // boxedWidth: 1362
               }
             },
             {
@@ -63,15 +57,12 @@ export default {
                         title: 'بانک سوالا'
                       }
                     }
-                  ],
-                  options: {
-                    className: 'mitra'
-                  }
+                  ]
                 }
               ],
               options: {
-                boxed: true,
-                boxedWidth: 1362
+                // boxed: true,
+                // boxedWidth: 1362
               }
             },
             {
@@ -85,8 +76,8 @@ export default {
                 }
               ],
               options: {
-                boxed: true,
-                boxedWidth: 1362
+                // boxed: true,
+                // boxedWidth: 1362
               }
             },
             {
@@ -107,8 +98,8 @@ export default {
                 }
               ],
               options: {
-                boxed: true,
-                boxedWidth: 1362
+                // boxed: true,
+                // boxedWidth: 1362
               }
             },
             {

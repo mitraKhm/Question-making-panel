@@ -64,15 +64,17 @@ export default {
 <style scoped lang="scss">
 .page-width{
   width: 1362px;
-  margin: auto;
+  margin: 0 auto;
   @media screen and (max-width:1439px ){
     width: 954px;
   }
   @media screen and (max-width:1023px ){
-    width: 600px;
+    width: 540px;
   }
   @media screen and (max-width:599px ){
     width: 100%;
+    padding-left: 19px;
+    padding-right: 19px;
   }
 }
 .slider{
@@ -95,6 +97,7 @@ export default {
   }
   @media screen and (max-width: 599px){
     margin: 16px 0;
+    height: 208px;
   }
 
   &:deep(.q-carousel__navigation-inner){

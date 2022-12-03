@@ -130,14 +130,14 @@ export default {
           active: false,
           children: []
         },
-        {
-          title: 'ساخت آزمون',
-          icon: 'isax:task-square',
-          routeName: 'User.Create.Exam',
-          permission: 'all',
-          active: false,
-          children: []
-        },
+        // {
+        //   title: 'ساخت آزمون',
+        //   icon: 'isax:task-square',
+        //   routeName: 'User.Create.Exam',
+        //   permission: 'all',
+        //   active: false,
+        //   children: []
+        // },
         {
           title: 'سفارش‌ های من',
           icon: 'isax:clipboard-text',
@@ -155,8 +155,8 @@ export default {
           children: []
         },
         {
-          title: 'تیکت',
-          icon: 'isax:clipboard-text',
+          title: 'تیکت پشتیبانی',
+          icon: 'isax:message-question',
           routeName: 'User.Ticket.Index',
           permission: 'all',
           active: false,
@@ -208,8 +208,11 @@ export default {
 
 <style scoped lang="scss">
 .user-panel-base-menu {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  height: 100%;
+  grid-template-rows:1fr;
+  grid-template-columns: 1fr;
+  justify-content: space-between;
   color: #6D708B;
   @media screen and (max-width: 1919px) {}
   @media screen and (max-width: 1439px) {
@@ -405,6 +408,8 @@ export default {
 
   &.list-side-mode {
     color: white;
+    justify-content: space-between;
+    height: 100%;
     .q-list {
       a {
         color: white;

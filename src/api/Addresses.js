@@ -40,7 +40,7 @@ const API_ADDRESS = {
   },
   option: {
     base: lumenServer + '/option',
-    userIndex: lumenServer + '/option/user?type=question_report_type',
+    userIndex: lumenServer + '/option/user',
     user(type) { return lumenServer + '/option/user?type=' + type }
   },
   log: {
@@ -177,7 +177,8 @@ const API_ADDRESS = {
         bulkAttachQuestions: (examId) => lumenServer + '/exam-question/user/attach/bulk/' + examId,
         bulkDetachQuestions: (examId) => lumenServer + '/exam-question/user/detach/bulk/' + examId,
         replaceQuestions: (examId) => lumenServer + '/exam-question/user/replace-questions/' + examId
-      }
+      },
+      pdf: (examId) => lumenServer + `/exam/user/pdf/${examId}`
     }
   },
   question: {

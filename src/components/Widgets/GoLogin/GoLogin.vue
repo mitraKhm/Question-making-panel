@@ -1,22 +1,25 @@
 <template>
   <div  v-if="!isUserLogin"
-        class="sub-mit-box flex justify-between items-center page-width">
-    <div class="info">با ورود و یا ثبت نام در سوالا میتوانید محتوای شخصی سازی شده و مربوط به خود را دنبال کنید</div>
-    <div class="action-box">
-      <q-btn
-        unelevated
-        class="btn-style"
-        label="ورود"
-        :to="{ name: 'login' }"
-      />
-      <q-btn
-        unelevated
-        color="primary"
-        class="btn-style"
-        label="ثبت نام"
-        :to="{ name: 'login' }"
-      />
+        class="page-width">
+    <div class="sub-mit-box flex justify-between items-center">
+      <div class="info">با ورود و یا ثبت نام در سوالا میتوانید محتوای شخصی سازی شده و مربوط به خود را دنبال کنید</div>
+      <div class="action-box">
+        <q-btn
+          unelevated
+          class="btn-style"
+          label="ورود"
+          :to="{ name: 'login' }"
+        />
+        <q-btn
+          unelevated
+          color="primary"
+          class="btn-style"
+          label="ثبت نام"
+          :to="{ name: 'login' }"
+        />
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -30,8 +33,17 @@ export default {
   }
 }
 </script>
+<style lang="scss">
+.boxed.boxedInFullWidthStatus {
+  padding-right: 15px;
+  padding-left: 15px;
+  max-width: 100% !important;
+  width: 100% !important;
+}
+</style>
 
 <style scoped lang="scss">
+
 .page-width{
   width: 1362px;
   margin: auto;
@@ -39,10 +51,12 @@ export default {
     width: 954px;
   }
   @media screen and (max-width:1023px ){
-    width: 600px;
+    width: 540px;
   }
   @media screen and (max-width:599px ){
     width: 100%;
+    padding-right: 19px;
+    padding-left: 19px;
   }
 }
 .sub-mit-box{
