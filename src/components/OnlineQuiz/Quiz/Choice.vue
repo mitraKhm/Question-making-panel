@@ -8,6 +8,7 @@
            :class="{'ltr' : !isRtl}"
       >
         <vue-katex
+          class="vue-katex"
           :input="choice.title"
           :ltr="!isRtl"
         />
@@ -68,8 +69,17 @@ export default {
     }
 </style>
 
-<style scoped>
-
+<style scoped lang="scss">
+    .vue-katex {
+     :deep(.html-katex) {
+       & > p {
+         direction: inherit;
+         &:first-child {
+           display: inline-block;
+         }
+       }
+     }
+    }
     .answer-box {
         display: flex;
         justify-content: center;
@@ -98,6 +108,7 @@ export default {
         color: #777;
         /*padding-left: 30px;*/
         display: flex;
+        align-items: flex-end;
     }
     .answer-text.ltr {
         height: max-content;
@@ -106,6 +117,7 @@ export default {
         padding-left: 0;
         padding-right: 30px;
         display: flex;
+        align-items: baseline;
     }
     .answer-text .mesra {
       max-width: 100%;

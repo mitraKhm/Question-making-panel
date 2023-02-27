@@ -1,5 +1,13 @@
 <template>
   <div class="type-section">
+    <q-btn
+      unelevated
+      color="primary"
+      :loading="btnLoading"
+      label="اصلاح فرمول سوال"
+      class="default-detail-btn"
+      @click="setModifiedValue(true)"
+    />
     <vue-tiptap-katex
       ref="tiptap"
       :loading="loading"
@@ -14,8 +22,13 @@
           headers: {
             Authorization: getAuthorizationCode
           }
+        },
+        persianKeyboard: true,
+        mathliveOptions: {
+          locale: 'fa',
         }
       }"
+      @update:modelValue="updateValue"
     />
   </div>
 </template>
@@ -45,7 +58,10 @@ export default {
     return {
       value: 'What you see is <b>what</b> you get.',
       html: '',
-      loading: false
+      loading: false,
+      btnLoading: false,
+      isValueChangeAllowed: false,
+      modifiedContent: ''
     }
   },
   inject: {
@@ -67,14 +83,31 @@ export default {
     this.loading = true
     this.getHtmlValueFromValueProp()
   },
-  watch: {},
   mounted() {
-    if (this.$refs.tiptap) {
-      const input = this.getModifiedContent(this.html)
-      this.$refs.tiptap.setContent(input)
-    }
+    this.$nextTick(() => {
+      this.isValueChangeAllowed = true
+    })
+    this.setModifiedValue()
   },
   methods: {
+    updateValue(value) {
+      if (this.isValueChangeAllowed) {
+        this.value = value
+      }
+    },
+    setModifiedValue(criticalModifyingMode = false) {
+      if (!this.$refs.tiptap) {
+        return
+      }
+      this.btnLoading = true
+      this.setModifiedContent(this.value, criticalModifyingMode)
+      this.btnLoading = false
+    },
+    setModifiedContent(input, criticalModifyingMode) {
+      this.value = this.getModifiedContent(input, criticalModifyingMode)
+      this.modifiedContent = this.value
+      this.$refs.tiptap.setContent(this.value)
+    },
     getContent() {
       return this.$refs.tiptap.getContent()
       // this.$emit('update:modelValue', this.$refs.tiptap.getContent())
@@ -84,11 +117,12 @@ export default {
       if (html === null || typeof html === 'undefined') {
         html = ''
       }
-      this.html = html
+      this.value = html
       this.loading = false
     },
-    getModifiedContent (input) {
-      let modifiedValue = this.removeImageWithLocalSrc(input)
+    getModifiedContent(input, criticalModifyingMode) {
+      let modifiedValue = input
+      modifiedValue = this.removeImageWithLocalSrc(input)
       modifiedValue = this.fixWidehatProblemFromLatex(modifiedValue)
       modifiedValue = this.modifyPrimeWithPower(modifiedValue)
       modifiedValue = this.modifySinus(modifiedValue)
@@ -96,44 +130,51 @@ export default {
       modifiedValue = this.removeEmptyDataKatexElements(modifiedValue)
       modifiedValue = this.modifyCombination(modifiedValue)
       modifiedValue = this.removeFirstAndLastBracket(modifiedValue)
+      modifiedValue = this.fixRightArrowBug(modifiedValue)
+      if (criticalModifyingMode) {
+        modifiedValue = this.modifyMultilineWithPublishConvertor(modifiedValue)
+        modifiedValue = this.modifyMultilineWithFormatConvertor(modifiedValue)
+        modifiedValue = this.correctParenthesis(modifiedValue)
+        modifiedValue = this.fixRightArrowBug(modifiedValue)
+      }
       return modifiedValue
     },
-    removeImageWithLocalSrc (html) {
+    removeImageWithLocalSrc(html) {
       const regex = /<img src="file:.*?".*?\/?>/gms
       return html.replaceAll(regex, '')
     },
-    fixWidehatProblemFromLatex (input) {
+    fixWidehatProblemFromLatex(input) {
       const regex = /({\\widehat)(.*?)(\})/gms
       return input.replaceAll(regex, (result) => {
         const charUnderWidehat = result.replace('{\\widehat', '').replace('}', '')
         return '\\widehat{' + charUnderWidehat + '}'
       })
     },
-    modifyPrimeWithPower (input) {
+    modifyPrimeWithPower(input) {
       const regex = /(\{\\prime}\^.)/gms
       return input.replaceAll(regex, (result) => {
         const char = result.replace('{\\prime}^', '')
         return '{\\prime' + char + '}'
       })
     },
-    modifySinus (input) {
+    modifySinus(input) {
       const regex = /(\\sin\w*)/gms
       return input.replaceAll(regex, (result) => {
         const char = result.replace('\\sin', '')
         return '\\sin ' + char
       })
     },
-    modifyCosine (input) {
+    modifyCosine(input) {
       const regex = /(\\cos\w*)/gms
       return input.replaceAll(regex, (result) => {
         const char = result.replace('\\cos', '')
         return '\\cos ' + char
       })
     },
-    removeEmptyDataKatexElements (input) {
+    removeEmptyDataKatexElements(input) {
       return input.replaceAll('<span data-katex="true">$$</span>', '').replaceAll('<span data-katex="true"></span>', '')
     },
-    modifyCombination (input) {
+    modifyCombination(input) {
       const regex = /(\\left\( \\begin\{align})(.*?)(\\end{align} \\right\))/gms
       return input.replaceAll(regex, (result) => {
         const numberRegex = /\d+/g
@@ -141,7 +182,7 @@ export default {
         return '{{' + arrayOfNumbers[0] + '\\choose ' + arrayOfNumbers[1] + '}}'
       })
     },
-    removeFirstAndLastBracket (input) {
+    removeFirstAndLastBracket(input) {
       const regexPatternForFormula = mixinConvertToTiptap.methods.getRegexPatternForFormula()
       const regex = /\\\[.*\\]/gms
       let string = input
@@ -161,6 +202,46 @@ export default {
         return '$' + finalMatch + '$'
       })
       return string
+    },
+    modifyMultilineWithFormatConvertor(input) {
+      const regex = /(begin{align})(.*?)(end{align})/gms
+      return input.replaceAll(regex, (result) => {
+        return result.replace('begin{align}', 'begin{array}{l}').replace('end{align}', 'end{array}')
+      })
+    },
+    modifyMultilineWithPublishConvertor(input) {
+      const regex = /\\begin{align}(\s*(&||&amp;).*\\\\\s*)*\\end{align}/gms
+      return input.replaceAll(regex, (result) => {
+        let finalResult = result
+        const eachFormulaLineRegex = /(&||&amp;).*\\\\/gm
+        finalResult = finalResult.replaceAll(eachFormulaLineRegex, (eachLineResult) => {
+          return eachLineResult.replaceAll('&amp;', '').replaceAll('&', '')
+        })
+        finalResult = finalResult.replace('begin{align}', 'begin{array}{l}')
+        finalResult = finalResult.replace('end{align}', 'end{array}')
+        return finalResult
+      })
+    },
+    correctParenthesis (input) {
+      const regex = /(\\left\()(.*?)(\\right)./gms
+      return input.replaceAll(regex, (result) => {
+        const lastCharOfResult = result.substring(result.length - 1)
+        let finalResult = result
+        if (lastCharOfResult === '?') {
+          finalResult = result.substring(0, result.length - 1) + ')'
+        } else if (lastCharOfResult !== ')') {
+          finalResult = result.substring(0, result.length - 1) + ')' + lastCharOfResult
+        }
+        return finalResult
+      })
+    },
+    fixRightArrowBug(input) {
+      const regex = /(\\left\()([^)]*)(\\right\)arrow)/gms
+      return input.replaceAll(regex, (result) => {
+        let finalResult = result
+        finalResult = finalResult.replaceAll('\\right)arrow', '\\rightarrow')
+        return finalResult
+      })
     }
   }
 }
@@ -168,7 +249,7 @@ export default {
 
 <style lang="scss" scoped>
 .type-section {
-  &:deep(.tiptap-plus-container) {
+  &:deep(.tiptap-container) {
     background-color: var(--3a-Neutral2);
     border: 1px solid var(--3a-Neutral1);
     border-radius: 16px;
@@ -185,7 +266,7 @@ export default {
 </style>
 <style lang="scss">
 /*rtl:ignore*/
-@import "katex/dist/katex.min.css";
+@import "vue-tiptap-katex-core/css/base";
 @import "src/css/katex-rtl-fix.scss";
 //rtl change bug fix
 [dir="rtl"] .katex {
@@ -197,6 +278,7 @@ export default {
   line-height: 4rem;
   .katex {
     font-size: 1.9rem;
+    direction: ltr #{"/* rtl:ignore */"};
   }
 }
 
@@ -219,80 +301,6 @@ export default {
     direction: inherit;
     &:first-child {
       display: inline-block;
-    }
-  }
-  table {
-    border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
-    margin: 0;
-    overflow: hidden;
-    td,
-    th {
-      min-width: 1em;
-      border: 2px solid #ced4da;
-      padding: 3px 5px;
-      vertical-align: top;
-      box-sizing: border-box;
-      position: static;
-      > * {
-        margin-bottom: 0;
-      }
-    }
-    th {
-      font-weight: bold;
-      text-align: left;
-      background-color: #f1f3f5;
-    }
-    .selectedCell:after {
-      z-index: 2;
-      position: absolute;
-      content: "";
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
-      background: rgba(200, 200, 255, 0.4);
-      pointer-events: none;
-    }
-    .column-resize-handle {
-      position: absolute;
-      right: -2px;
-      top: 0;
-      bottom: -2px;
-      width: 4px;
-      background-color: #adf;
-      pointer-events: none;
-    }
-  }
-  .beit {
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
-    margin-right: -15px;
-    margin-left: -15px;
-    @media only screen and (max-width: 500px) {
-      flex-direction: column;
-    }
-    .mesra {
-      position: relative;
-      width: 100%;
-      min-height: 1px;
-      padding-right: 15px;
-      padding-left: 15px;
-      -ms-flex-preferred-size: 0;
-      flex-basis: 0;
-      -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-      flex-grow: 1;
-      max-width: 100%;
-      white-space: nowrap;
-      @media only screen and (max-width: 500px) {
-        white-space: normal;
-        flex-basis: auto;
-      }
     }
   }
 }

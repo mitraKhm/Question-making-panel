@@ -1,16 +1,31 @@
 import state from './state'
-import * as getters from './getters'
-import * as mutations from './mutations'
-import * as actions from './actions'
-import { QuasarTemplateBuilderAppLayout } from 'quasar-template-builder/index'
-Object.assign(QuasarTemplateBuilderAppLayout.getters, getters)
-Object.assign(QuasarTemplateBuilderAppLayout.mutations, mutations)
-Object.assign(QuasarTemplateBuilderAppLayout.actions, actions)
+import getters from './getters.js'
+import actions from './actions.js'
+import mutations from './mutations.js'
+
+import QuasarTemplateBuilderState from 'quasar-template-builder/src/store/QuasarTemplateBuilderAppLayout/state.js'
+const QState = QuasarTemplateBuilderState
+import QuasarTemplateBuilderGetters from 'quasar-template-builder/src/store/QuasarTemplateBuilderAppLayout/getters.js'
+const QGetters = QuasarTemplateBuilderGetters
+import QuasarTemplateBuilderMutations from 'quasar-template-builder/src/store/QuasarTemplateBuilderAppLayout/mutations.js'
+const QMutations = QuasarTemplateBuilderMutations
+import QuasarTemplateBuilderActions from 'quasar-template-builder/src/store/QuasarTemplateBuilderAppLayout/actions.js'
+const QActions = QuasarTemplateBuilderActions
+
+const assignedState = Object.assign({}, QState, state)
+const assignedGetters = Object.assign({}, QGetters, getters)
+const assignedMutations = Object.assign({}, QMutations, mutations)
+const assignedActions = Object.assign({}, QActions, actions)
+
+Object.assign(QState, state)
+Object.assign(QGetters, getters)
+Object.assign(QMutations, mutations)
+Object.assign(QActions, actions)
 
 export default {
   namespaced: true,
-  getters: QuasarTemplateBuilderAppLayout.getters,
-  mutations: QuasarTemplateBuilderAppLayout.mutations,
-  actions: QuasarTemplateBuilderAppLayout.actions,
-  state
+  state: assignedState,
+  getters: assignedGetters,
+  mutations: assignedMutations,
+  actions: assignedActions
 }

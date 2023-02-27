@@ -146,17 +146,17 @@
       </div>
     </div>
     <div class="timer-row col">
-      <Timer />
+      <Timer v-if="quiz.accept_at" />
     </div>
   </div>
 </template>
 
 <script>
+import Assistant from 'src/plugins/assistant'
 import VueKatex from 'src/components/VueKatex'
 import Choice from 'src/components/OnlineQuiz/Quiz/Choice'
 import Timer from 'src/components/OnlineQuiz/Quiz/timer/timer'
 import { mixinAuth, mixinQuiz, mixinUserActionOnQuestion, mixinDrawer } from 'src/mixin/Mixins'
-import Assistant from 'src/plugins/assistant'
 
 export default {
   name: 'AlaaView',
@@ -191,10 +191,11 @@ export default {
   methods: {
     startExamProcess () {
       const retake = this.$route.name === 'onlineQuiz.alaaView.retake'
-      this.startExam(this.$route.params.quizId, 'onlineQuiz.alaaView', retake)
+      const personal = this.$route.name === 'onlineQuiz.alaaView.personal'
+      this.startExam(this.$route.params.quizId, 'onlineQuiz.alaaView', retake, personal)
         .then(() => {
           this.setSocket(this.$store.getters['Auth/accessToken'], this.quiz.id)
-          if (this.getCurrentExamQuestionsInArray().length === 0) {
+          if (!this.getCurrentExamQuestionsInArray() || this.getCurrentExamQuestionsInArray().length === 0) {
             this.$q.notify({
               type: 'negative',
               message: 'مشکلی در دریافت سوالات آزمون رخ داده است.',
@@ -317,6 +318,14 @@ export default {
           height: 24px;
           width: 24px;
           size: 12px;
+        }
+        .question-buttons {
+          :deep(.q-btn) {
+            .q-btn__content {
+              margin-top: 0;
+              margin-bottom: 0;
+            }
+          }
         }
         @media only screen and (max-width: 600px) {
           .question-buttons button {
