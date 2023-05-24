@@ -1,6 +1,5 @@
 import process from 'process'
 const lumenServer = process.env.AAA_API
-// const lumenServerProduction = process.env.AAA_API_PRODUCTION
 const authServer = process.env.AUTH_API
 const timeServer = process.env.GET_TIME_SERVER
 const socketServer = process.env.SOCKET_SERVER
@@ -23,7 +22,13 @@ const API_ADDRESS = {
   },
   user: {
     base: authServer + '/user',
+    resendGuest: authServer + '/mobile/resendGuest',
+    verifyMoshavereh: authServer + '/mobile/verifyMoshavereh',
+    newsletter: authServer + '/newsletter',
     edit (userId) { return authServer + '/user/' + userId },
+    updatePhoto() {
+      return lumenServer + '/user/avatar'
+    },
     mobile: {
       resend: authServer + '/mobile/resend',
       verify: authServer + '/mobile/verify'
@@ -34,14 +39,22 @@ const API_ADDRESS = {
       status: lumenServer + '/payment/status',
       userOrders: lumenServer + '/orders'
     },
-    statistics: lumenServer + 'user/dashboard/statistics',
+    statistics: lumenServer + '/user/dashboard/statistics',
     feature: (feature) => lumenServer + '/user/feature?feature=' + feature
+  },
+  block: {
+    home: authServer + '/home',
+    shop: authServer + '/shop'
   },
   set: {
     base: authServer + '/set'
   },
   content: {
-    base: authServer + '/c'
+    admin: authServer + '/admin/c',
+    adminGet: (id) => authServer + `/admin/c/${id}`,
+    base: authServer + '/c',
+    relatedProducts: (id) => authServer + '/c/' + id + '/products',
+    get: (id) => authServer + `/c/${id}`
   },
   option: {
     base: lumenServer + '/option',
@@ -65,7 +78,7 @@ const API_ADDRESS = {
       show: lumenServer + '/option/',
       edit: lumenServer + '/option',
       create: lumenServer + '/option',
-      index: lumenServer + '/option?type=reference_type&with_pagination=true'
+      index: lumenServer + '/option'
     },
     questionReport: {
       show: lumenServer + '/option/',
@@ -97,6 +110,9 @@ const API_ADDRESS = {
     sendUnBookmark: lumenServer + '/temp-exam/answer/unbookmark',
     userExamsList: lumenServer + '/examAndUser',
     takhminRotbe: lumenServer + '/exam-report/rankSimulator',
+    konkurTakhminRotbe (konkurId) {
+      return lumenServer + '/exam-report/rank/' + konkurId
+    },
     analysisVideo: lumenServer + '/exam-question/attach/sub-category',
     userExamList: {
       base () {
@@ -165,6 +181,7 @@ const API_ADDRESS = {
         return lumenServer + '/exam-report/show?user_exam_id=' + userExamId
       },
       adminGetReport: lumenServer + '/exam-report/show/admin',
+      takhminRotbeExamList: lumenServer + '/exam-report/rank',
       updateReportOptions (examId) {
         return lumenServer + '/exam/config/' + examId
       }
@@ -173,6 +190,7 @@ const API_ADDRESS = {
       return lumenServer + '/exam-question/booklet-file/' + examId
     },
     detachCategory: (examId, categoryId) => lumenServer + '/exam/detach/category/' + examId + '/' + categoryId,
+    attachCategories: (examId) => lumenServer + '/exam/attach/category/' + examId,
     user: {
       draft () { return lumenServer + '/exam/user/draft' },
       reportType: lumenServer + '/option/user?type=question_report_type',
@@ -206,34 +224,82 @@ const API_ADDRESS = {
     bank: {
       page: (page) => lumenServer + '/exam-question/attach/show/6245afa20569e1374540cb88?page=' + page
     },
-    index (filters, page) {
+    index (filters, page, isAdmin = false) {
       let newFilter = (filters) ? JSON.parse(JSON.stringify(filters)) : {}
       function setQueryParams (paramKey, singleMode = false) {
         if (!newFilter) {
           newFilter = {}
         }
-        newFilter[paramKey] = (typeof newFilter[paramKey] !== 'undefined') ? newFilter[paramKey] : []
-        if (!singleMode) {
-          newFilter[paramKey] = newFilter[paramKey].join('&' + paramKey + '[]=')
-          if (newFilter[paramKey]) {
-            newFilter[paramKey] = '&' + paramKey + '[]=' + newFilter[paramKey]
+        const fillNewFilter = function (paramKey, sign) {
+          if (typeof newFilter[paramKey] !== 'undefined' && newFilter[paramKey] !== '') {
+            newFilter[paramKey] = '&' + paramKey + sign + newFilter[paramKey]
           }
-        } else {
-          // if (newFilter[paramKey]) {
-          newFilter[paramKey] = '&' + paramKey + '=' + newFilter[paramKey]
-          // }
         }
+
+        if (singleMode) {
+          fillNewFilter(paramKey, '=')
+          return
+        }
+
+        newFilter[paramKey] = (typeof newFilter[paramKey] !== 'undefined') ? newFilter[paramKey] : []
+        newFilter[paramKey] = newFilter[paramKey].join('&' + paramKey + '[]=')
+        fillNewFilter(paramKey, '[]=')
       }
-      setQueryParams('statuses')
-      setQueryParams('years')
-      setQueryParams('majors')
-      setQueryParams('reference')
-      setQueryParams('tags')
-      setQueryParams('level')
-      // setQueryParams('statement', true)
-      setQueryParams('sort_by', true)
-      setQueryParams('sort_type', true)
-      setQueryParams('tags_with_childrens', true)
+
+      const setQueryParamsKeys = [
+        {
+          key: 'statuses',
+          singleMode: false
+        },
+        {
+          key: 'years',
+          singleMode: false
+        },
+        {
+          key: 'type_id',
+          singleMode: true
+        },
+        {
+          key: 'majors',
+          singleMode: false
+        },
+        {
+          key: 'reference',
+          singleMode: false
+        },
+        {
+          key: 'tags',
+          singleMode: false
+        },
+        {
+          key: 'level',
+          singleMode: false
+        },
+        {
+          key: 'question_report_type',
+          singleMode: false
+        },
+        {
+          key: 'sort_by',
+          singleMode: true
+        },
+        {
+          key: 'report_status',
+          singleMode: true
+        },
+        {
+          key: 'sort_type',
+          singleMode: true
+        },
+        {
+          key: 'tags_with_childrens',
+          singleMode: true
+        }
+      ]
+
+      setQueryParamsKeys.forEach(item => {
+        setQueryParams(item.key, item.singleMode)
+      })
 
       if (typeof page !== 'undefined') {
         page = '&page=' + page
@@ -249,14 +315,21 @@ const API_ADDRESS = {
       if (queryParam.length > 0) {
         queryParam = queryParam.substr(1)
       }
-      return lumenServer + '/question?' + queryParam
+      if (isAdmin) {
+        return lumenServer + '/question?' + queryParam
+      } else {
+        return lumenServer + '/question/bank/search?' + queryParam
+      }
     },
+    groupAttach: lumenServer + '/question/group/attach',
     status: {
       base: lumenServer + '/question/statuses',
       changeStatus (questionId) {
         return lumenServer + '/question/' + questionId + '/status'
       }
     },
+    reportStatuses: lumenServer + '/question/report/statuses',
+    levels: lumenServer + '/question/levels',
     log: {
       base (questionId, pagination) {
         if (!pagination) {
@@ -272,7 +345,7 @@ const API_ADDRESS = {
     update (questionId) {
       return lumenServer + '/question/' + questionId
     },
-    reportLog: lumenServer + '/question/report',
+    reportLog: (questionId) => lumenServer + '/question/report/' + questionId,
     show (questionId) {
       return lumenServer + '/question/' + questionId
     },
@@ -323,6 +396,13 @@ const API_ADDRESS = {
   },
   tree: {
     base: lumenServer + '/forrest/tree',
+    getMultiType (types) {
+      let treeAddress = authServer + '/forrest/tree?'
+      types.forEach(element => {
+        treeAddress = treeAddress + `multi-type[]=${element}&`
+      })
+      return treeAddress
+    },
     getNodeById (nodeId) {
       return lumenServer + '/forrest/tree/' + nodeId
     },
@@ -331,7 +411,12 @@ const API_ADDRESS = {
     },
     editNode (id) {
       return lumenServer + '/forrest/tree/' + id
-    }
+    },
+    getGradesList: lumenServer + '/forrest/tree?type=test',
+    getLessonList(lessonId) {
+      return lumenServer + '/forrest/tree/' + lessonId
+    },
+    getSubjectTagsTree: lumenServer + '/forrest/tree?type=subject_tags'
   },
   tags: {
     setTags (questionId) {
@@ -344,6 +429,18 @@ const API_ADDRESS = {
         all: authServer + '/product/soalaa/all'
       }
     },
+    gifts: (id) => authServer + '/gift-products/' + id,
+    sampleContent: (id) => authServer + '/product/' + id + '/sample',
+    favored: (id) => authServer + '/product/' + id + '/favored',
+    unfavored: (id) => authServer + '/product/' + id + '/unfavored',
+    bulk: (productIds) => {
+      const idParams = []
+      productIds.forEach((productId, productIndex) => {
+        idParams.push('ids' + '[' + productIndex + ']=' + productId)
+      })
+      const queryParams = idParams.join('&') + '&seller=2'
+      return authServer + '/product?' + queryParams
+    },
 
     edit: {
       base: apiV2Server + '/admin/product'
@@ -352,7 +449,7 @@ const API_ADDRESS = {
       base: apiV2Server + '/admin/product'
     },
     show: {
-      base: apiV2Server + '/product'
+      base: authServer + '/product'
     }
   },
   cart: {

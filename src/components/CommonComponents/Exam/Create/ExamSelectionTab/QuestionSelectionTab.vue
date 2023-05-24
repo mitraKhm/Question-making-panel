@@ -25,6 +25,7 @@
         <question-filter
           ref="filter"
           :show-major-list="false"
+          :availableSearchSingleNode="false"
           :filterQuestions="filterQuestions"
           :root-node-id-to-load="rootNodeIdInFilter"
           :node-ids-to-tick="selectedNodesIds"
@@ -124,31 +125,36 @@
     </div>
 
   </div>
-  <question-tree-modal
-    ref="questionTreeModal"
-    v-model:dialogValue="treeModalValue"
-    v-model:subjectsField="allSubjects"
-    :lessons-list="treeModalLessonsList"
-    :persistent="!doesExamHaveLesson"
-    single-list-choice-mode
-    :initial-lesson="initialLesson"
-    @lessonSelected="onLessonChanged"
-  >
-    <template v-slot:tree-dialog-action-box>
-      <q-btn
-        unelevated
-        label="بازگشت"
-        class="go-back-tree-tab"
-        @click="goToPrevStep"
-      />
-      <q-btn
-        v-close-popup
-        unelevated
-        class="close-tree-tab"
-        label="تایید"
-      />
-    </template>
-  </question-tree-modal>
+  <div v-if="isTreeLayerConfigReady">
+    <tree-modal
+      ref="questionTreeModal"
+      :key="treeKey"
+      v-model:dialogValue="treeModalValue"
+      v-model:selected-nodes="selectedNodes"
+      :initial-node="treeModalNodeId"
+      :tree-type="'test'"
+      :no-nodes-label="'لطفا یک درس انتخاب کنید'"
+      exchange-last-layer-only
+      :persistent="!doesExamHaveLesson"
+      :layers-config="treeLayersConfig"
+      @layerSelected="onLessonChanged"
+    >
+      <template v-slot:tree-dialog-action-box>
+        <q-btn
+          unelevated
+          label="بازگشت"
+          class="go-back-tree-tab"
+          @click="goToPrevStep"
+        />
+        <q-btn
+          v-close-popup
+          unelevated
+          class="close-tree-tab"
+          label="تایید"
+        />
+      </template>
+    </tree-modal>
+  </div>
 </template>
 
 <script>
@@ -159,14 +165,14 @@ import { Question, QuestionList } from 'src/models/Question'
 import QuestionItem from 'components/CommonComponents/Exam/Create/QuestionTemplate/QuestionItem.vue'
 import QuestionFilter from 'components/Question/QuestionBank/QuestionFilter'
 import QuestionsGeneralInfo from 'components/CommonComponents/Exam/Create/ExamSelectionTab/QuestionsGeneralInfo'
-import QuestionTreeModal from 'components/Question/QuestionPage/QuestionTreeModal'
+import TreeModal from 'components/Question/QuestionPage/TreeModal'
 import mixinTree from 'src/mixin/Tree'
 import { TreeNode } from 'src/models/TreeNode'
 import StickyBothSides from 'components/Utils/StickyBothSides'
 
 export default {
   name: 'QuestionSelectionTab',
-  components: { StickyBothSides, QuestionTreeModal, QuestionsGeneralInfo, QuestionFilter, QuestionItem, pagination },
+  components: { StickyBothSides, TreeModal, QuestionsGeneralInfo, QuestionFilter, QuestionItem, pagination },
   mixins: [
     mixinTree
   ],
@@ -199,6 +205,7 @@ export default {
 
   data() {
     return {
+      treeKey: 0,
       searchInput: '',
       searchSelector: {
         title: 'جدید ترین',
@@ -215,14 +222,21 @@ export default {
         }
       ],
       selectedTags: [],
-      initialLesson: new TreeNode(),
       treeModalValue: false,
       allSubjects: {},
       treeModalLessonsList: [],
       rootNodeIdInFilter: '',
       groupsList: [],
-      allSubjectsFlat: [],
-      lastSelectedNodes: [],
+      treeLayersConfig: [
+        {
+          name: 'lesson',
+          selectedValue: new TreeNode(),
+          nodeList: [],
+          disable: false,
+          label: 'نام درس',
+          className: 'col-12'
+        }
+      ],
       examGradeSetValue: '',
       selectedNodesIds: [],
       lessonsTitles: [],
@@ -232,21 +246,10 @@ export default {
         major_type: [],
         reference_type: [],
         year_type: [],
-        levels: [
-          {
-            value: 1,
-            label: 'آسان'
-          },
-          {
-            value: 2,
-            label: 'متوسط'
-          },
-          {
-            value: 3,
-            label: 'سخت'
-          }
-        ]
+        level_type: [],
+        tags_with_childrens: 1
       },
+      selectedNodes: [],
       selectedQuestions: [],
       questionId: [],
       loadingQuestion: new Question(),
@@ -262,7 +265,8 @@ export default {
         to: 0,
         total: 0
       },
-      reportTypeList: []
+      reportTypeList: [],
+      treeModalNodeId: null
     }
   },
   watch: {
@@ -274,13 +278,6 @@ export default {
         }
         this.hideLoading()
       }
-    },
-    allSubjects: {
-      handler() {
-        this.updateLessonsTitles()
-        this.getTheLastSelectedNode()
-      },
-      deep: true
     },
     treeModalValue(newVal) {
       if (!newVal) {
@@ -297,6 +294,7 @@ export default {
     // this.getQuestionData()
     this.getFilterOptions()
     this.getReportOptions()
+    this.getLevelsFilterData()
     this.setSelectedQuestionOfCurrentMetaPage()
   },
   mounted() {
@@ -328,6 +326,9 @@ export default {
     doesExamHaveLesson() {
       return !!this.providedExam.temp.lesson
     },
+    isTreeLayerConfigReady() {
+      return this.providedExam.temp.grade && this.treeModalNodeId
+    },
     getSelectedQuestionIds() {
       return this.providedExam.questions.list.map(question => question.id)
     },
@@ -356,40 +357,59 @@ export default {
       this.providedExam.questions.list[questionIndex].selected = value
     },
     updateTreeFilter() {
+      this.$refs.questionTreeModal.finalizeOutputData()
       const foundedLesson = this.treeModalLessonsList.find(item => item.id === this.providedExam.temp.lesson)
-      const tagsToFilter = this.lastSelectedNodes.length > 0 ? this.lastSelectedNodes : [foundedLesson]
-      this.selectedNodesIds = this.lastSelectedNodes.map(node => node.id)
+      const tagsToFilter = this.selectedNodes.length > 0 ? this.selectedNodes : [foundedLesson]
+      this.selectedNodesIds = this.selectedNodes.map(node => node.id)
       this.$refs.filter.changeFilterData('tags', tagsToFilter)
     },
-    setupTreeModal() {
+    async setupTreeModal() {
       if (this.providedExam.temp.tags && this.providedExam.temp.tags[0]) {
-        this.fillAllSubjectsFromResponse()
+        this.fillAllTagsFromResponse()
       }
-      this.toggleTreeModal()
-      this.showLoading()
-      this.getLessonsList(new TreeNode({
-        id: this.providedExam.temp.grade
-      }))
-        .then(response => {
-          this.hideLoading()
-          this.treeModalLessonsList = response.data.data.children
-          if (this.treeModalLessonsList.length === 0) {
-            this.$q.notify({
-              message: 'پایه تحصیلی انتخاب شده درس ندارد',
-              type: 'negative'
-            })
-          }
-          if (this.providedExam.temp.lesson) {
-            this.setInitialLesson(this.providedExam.temp.lesson)
-          }
-        })
+      await this.setupTreeLayer()
+      this.$nextTick(() => {
+        this.treeKey++
+        this.toggleTreeModal()
+      })
+    },
+    setupTreeLayer() {
+      return new Promise((resolve, reject) => {
+        this.showLoading()
+        this.getLessonsList(new TreeNode({
+          id: this.providedExam.temp.grade
+        }))
+          .then(response => {
+            this.hideLoading()
+            this.treeModalNodeId = response.data.data.id
+            this.treeModalLessonsList = response.data.data.children
+            if (this.treeModalLessonsList.length === 0) {
+              this.$q.notify({
+                message: 'پایه تحصیلی انتخاب شده درس ندارد',
+                type: 'negative'
+              })
+            }
+            this.setInitialTreeLayer(this.treeModalLessonsList)
+            if (this.providedExam.temp.lesson) {
+              this.setInitialLesson(this.providedExam.temp.lesson)
+            }
+            resolve()
+          })
+          .catch(() => {
+            this.hideLoading()
+            reject()
+          })
+      })
+    },
+    setInitialTreeLayer (nodeList) {
+      this.treeLayersConfig[0].nodeList = nodeList
     },
     setInitialLesson(lesson) {
       const foundedLesson = this.treeModalLessonsList.find(item => item.id === lesson)
-      if (!foundedLesson.id) {
+      if (!foundedLesson?.id) {
         return
       }
-      this.initialLesson = foundedLesson
+      this.treeLayersConfig[0].selectedValue = foundedLesson
     },
     toggleTreeModal() {
       this.treeModalValue = !this.treeModalValue
@@ -400,6 +420,14 @@ export default {
           this.reportTypeList = response.data.data
         })
     },
+    getLevelsFilterData() {
+      this.$axios.get(API_ADDRESS.question.levels)
+        .then(response => {
+          this.filterQuestions.level_type = response.data.data
+          this.addTypeToFilter('level_type')
+        })
+        .catch()
+    },
     goToPrevStep() {
       this.$emit('lastTab')
     },
@@ -407,7 +435,7 @@ export default {
       this.$emit('nextTab')
     },
     onFilter(filterData) {
-      this.$emit('onFilter', filterData)
+      // this.$emit('onFilter', filterData)
       this.filterData = this.getFiltersForRequest(filterData)
       this.getQuestionData(1, this.filterData)
     },
@@ -471,14 +499,15 @@ export default {
     },
     getFiltersForRequest(filterData) {
       return {
-        tags: (filterData.tags) ? filterData.tags.map(item => item.id) : [],
-        level: (filterData.level) ? filterData.level.map(item => item.value) : [],
-        years: (filterData.years) ? filterData.years.map(item => item.id) : [],
-        majors: (filterData.majors) ? filterData.majors.map(item => item.id) : [],
-        reference: (filterData.reference) ? filterData.reference.map(item => item.id) : [],
+        tags: filterData.tags.map(item => item.id),
+        level: filterData.level_type.map(item => item.value),
+        years: filterData.years.map(item => item.id),
+        majors: filterData.majors.map(item => item.id),
+        reference: filterData.reference.map(item => item.id),
         statement: (filterData.statement) ? filterData.statement[0] : '',
         sort_by: (this.searchSelector.value) ? 'created_at' : '',
-        sort_type: (filterData.sort_type) ? filterData.sort_type[0] : this.searchSelector.value
+        sort_type: (filterData.sort_type) ? filterData.sort_type[0] : this.searchSelector.value,
+        ...(typeof filterData.tags_with_childrens && { tags_with_childrens: filterData.tags_with_childrens })
       }
     },
     getQuestionData(page, filters) {
@@ -499,7 +528,7 @@ export default {
           this.questions.loading = false
           this.setSelectedQuestionOfCurrentMetaPage()
           this.setQuestionsInfoCheckBoxStatus()
-          this.setExamTags(this.selectedTags)
+          this.setExamTags(this.selectedNodes)
           this.hideLoading()
         })
         .catch((err) => {
@@ -523,6 +552,11 @@ export default {
           })
         })
     },
+    addTypeToFilter(filter) {
+      this.filterQuestions[filter].forEach(item => {
+        item.type = filter
+      })
+    },
     selectAllQuestions() {
       this.selectedQuestions = []
       this.questions.list.forEach(question => {
@@ -536,15 +570,15 @@ export default {
         this.selectedQuestions.splice(question)
       })
     },
-    onLessonChanged(item) {
-      if (this.isSelectedLessonNew(item)) {
-        this.providedExam.temp.lesson = item.id
+    onLessonChanged(lessonObj) {
+      if (this.isSelectedLessonNew(lessonObj.layer?.selectedValue)) {
+        this.providedExam.temp.lesson = lessonObj.layer.selectedValue.id
         this.$emit('update:exam', this.providedExam)
         if (this.providedExam.questions.list.length > 0) {
           this.detachAllQuestionsFromExam()
         }
       }
-      this.setFilterTreeLesson(item)
+      this.setFilterTreeLesson(lessonObj.layer.selectedValue)
     },
     isSelectedLessonNew(lesson) {
       return this.providedExam.temp.lesson !== lesson.id
@@ -557,40 +591,6 @@ export default {
     },
     getLessonsList(item) {
       return this.getNode(item.id)
-    },
-    updateLessonsTitles() {
-      const fieldText = []
-      const flatSelectedNodes = []
-      if (Object.keys(this.allSubjects).length !== 0) {
-        for (const key in this.allSubjects) {
-          if (this.allSubjects[key].nodes && this.allSubjects[key].nodes.length > 0) {
-            this.allSubjects[key].nodes.forEach(val => {
-              fieldText.push(val.title)
-              flatSelectedNodes.push(val)
-            })
-          }
-        }
-      }
-      this.allSubjectsFlat = flatSelectedNodes
-      this.lessonsTitles = fieldText
-    },
-    getTheLastSelectedNode() {
-      const foundedNodes = []
-      let cleaned = []
-      this.allSubjectsFlat.forEach((selectedNode) => {
-        selectedNode.ancestors.forEach((parentNode) => {
-          if (this.allSubjectsFlat.find(item => item.id === parentNode.id)) {
-            foundedNodes.push(parentNode)
-          }
-        })
-      })
-      cleaned = this.getUniqueListBy(foundedNodes, 'id')
-      this.lastSelectedNodes = this.allSubjectsFlat.filter((selectedNode) => {
-        return !(cleaned.find(item => item.id === selectedNode.id))
-      })
-    },
-    getUniqueListBy(arr, key) {
-      return [...new Map(arr.map(item => [item[key], item])).values()]
     },
     AreAllQuestionsSelected() {
       const questionListIds = this.questions.list.map(question => question.id)
@@ -613,19 +613,11 @@ export default {
       const questionListIds = this.questions.list.map(question => question.id)
       this.selectedQuestions = this.providedExam.questions.list.filter(question => questionListIds.includes(question.id))
     },
-    fillAllSubjectsFromResponse() {
-      this.providedExam.temp.tags.forEach((tag, index) => {
-        const lastAncestors = tag.ancestors[tag.ancestors.length - 1]
-        if (!this.allSubjects[lastAncestors.id]) {
-          this.allSubjects[lastAncestors.id] = {
-            nodes: []
-          }
-        }
-        Object.assign(this.allSubjects[lastAncestors.id].nodes, { [index]: { ...tag } })
-      })
+    fillAllTagsFromResponse() {
+      this.selectedNodes = this.providedExam.temp.tags
     },
     setSelectedTags(allTags) {
-      this.selectedTags = allTags
+      this.selectedNodes = allTags
     },
     setExamTags(selectedTags) {
       this.providedExam.temp.tags = selectedTags.map(node => ({
@@ -763,8 +755,6 @@ export default {
 }
 
 .main-container {
-  .question-bank-filter {
-  }
 
   .question-list {
     margin-left: 30px;

@@ -31,6 +31,7 @@ module.exports = configure(function (ctx) {
       'axios',
       'appConfig',
       'middleware',
+      'bus',
       'icon',
       'breadcrumbs',
       'registerQPageBuilder',
@@ -175,14 +176,6 @@ module.exports = configure(function (ctx) {
             ['^' + process.env.AAA_API]: ''
           }
         },
-        // [process.env.AAA_API_PRODUCTION]: {
-        //   target: process.env.AAA_API_SERVER_PRODUCTION,
-        //   changeOrigin: true,
-        //   secure: false,
-        //   pathRewrite: {
-        //     ['^' + process.env.AAA_API_PRODUCTION]: ''
-        //   }
-        // },
         [process.env.TREE_API]: {
           target: process.env.TREE_API_SERVER,
           changeOrigin: true,

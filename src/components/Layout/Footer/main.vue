@@ -201,7 +201,7 @@
               </div>
               <div class="footer-logo-item item-alaa">
                 <a href="https://alaatv.com">
-                  <q-img src="https://nodes.alaatv.com/upload/landing/logo.png"
+                  <q-img src="https://nodes.alaatv.com/aaa/templates/alaa_logo.png"
                          alt="آلاء"
                   />
                 </a>
@@ -209,7 +209,7 @@
               <div class="footer-logo-item item-enamad">
                 <a href="https://trustseal.enamad.ir/?id=294345&code=GxeQYgRGNFFOLcO4o81Q"
                    target="_blank">
-                  <q-img src="https://trustseal.enamad.ir/Content/Images/Star/star1.png?v=5.0.0.47"
+                  <q-img src="https://nodes.alaatv.com/aaa/templates/star1.png"
                          alt="enamad.ir"
                          style="cursor:pointer"
                   />
@@ -282,11 +282,13 @@
                   class="q-mt-sm"
                   :active="isRouteSelected(item.to)"
                   active-class="active-item"
+                  exact-active-class="active-route"
                   :to="{ name: item.to }"
                 >
                   <q-item-section class="tab-title"
                                   avatar>
                     <q-icon :name="item.icon"
+                            :class="{ active: $route.name === item.to }"
                             color="primary"
                             size="30px" />
                   </q-item-section>
@@ -357,6 +359,12 @@ export default {
 <style scoped lang="scss">
 .homePage-footer-container {
   background: #f4f6f9;
+  @media screen and (max-width:600px){
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
   .footer-box-1, .footer-box-2{
     @media screen and (max-width:600px){
       display: none;
@@ -703,6 +711,24 @@ export default {
     @media screen and (max-width:600px){
       display: block;
       height: 72px;
+    }
+
+    .active {
+      background-color: rgba(128, 117, 220, 0.34);
+      border-radius: 8px;
+    }
+
+    .active-route {
+      background-color: rgba(128, 117, 220, 0.34);
+      border-radius: 8px;
+
+      .indicator {
+        height: 6px;
+        width: 6px;
+        background-color: white;
+        border-radius: 50%;
+        margin: auto;
+      }
     }
   }
 }

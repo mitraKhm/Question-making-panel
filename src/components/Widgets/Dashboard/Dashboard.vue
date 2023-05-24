@@ -172,6 +172,7 @@
           <q-btn
             unelevated
             class="btn-style profile"
+            :to="{ name: 'User.Profile'}"
           >
             <svg width="24"
                  height="24"
@@ -288,7 +289,10 @@ export default {
       this.$router.push({ name })
     },
     logOut () {
-      return this.$store.dispatch('Auth/logOut')
+      this.$store.dispatch('Auth/logOut')
+        .then(() => {
+          this.$router.push({ name: 'login' })
+        })
     }
   }
 }
@@ -440,6 +444,7 @@ export default {
   padding-right: 42px;
   padding-left: 42px;
   bottom: 0;
+  left: 20px;
   width: 100%;
   .btn-style {
     width: 44px;

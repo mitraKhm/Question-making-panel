@@ -6,9 +6,11 @@
         <QuestionBankHeader />
       </div>
       <div class="col-xl-3 col-lg-3 col-md-3 col-sm-12 col-xs-12 question-bank-filter">
-        <sticky-both-sides :max-width="1024">
+        <sticky-both-sides :max-width="1024"
+                           :top-gap="130">
           <question-filter
             ref="filter"
+            :loadings="loadings"
             :filterQuestions="filterQuestions"
             @onFilter="onFilter"
             @delete-filter="deleteFilterItem"
@@ -76,6 +78,7 @@
               :question="question"
               :listOptions="questionsOptions"
               pageStrategy="question-bank"
+              :report-options="reportIssuesList"
               @deleteFromDb="deleteQuestionFromDataBase"
               @checkSelect="onClickedCheckQuestionBtn"
             />
@@ -132,6 +135,13 @@ export default {
   },
   data() {
     return {
+      reportIssuesList: [],
+      loadings: {
+        optionsLoading: false,
+        levelTypeLoading: false,
+        statusLoading: false,
+        reportStatusLoading: false
+      },
       searchInput: '',
       searchSelector: {
         title: 'جدید ترین',
@@ -155,21 +165,10 @@ export default {
         reference_type: [],
         year_type: [],
         statuses: [],
-        levels: [
-          {
-            id: '1',
-            value: 'آسان'
-          },
-          {
-            id: '2',
-            value: 'متوسط'
-          },
-          {
-            id: '3',
-            value: 'سخت'
-          }
-        ],
-        types: []
+        level_type: [],
+        types: [],
+        report_type: [],
+        report_status: []
       },
       questionListKey: Date.now(),
       selectedQuestions: [],
@@ -333,16 +332,18 @@ export default {
     },
     getFiltersForRequest(filterData) {
       return {
-        tags: (filterData.tags) ? filterData.tags.map(item => item.id) : [],
-        level: (filterData.level) ? filterData.level.map(item => item.value) : [],
-        years: (filterData.years) ? filterData.years.map(item => item.id) : [],
-        majors: (filterData.majors) ? filterData.majors.map(item => item.id) : [],
-        reference: (filterData.reference) ? filterData.reference.map(item => item.id) : [],
+        tags: filterData.tags.map(item => item.id),
+        level: filterData.level_type.map(item => item.key),
+        years: filterData.years.map(item => item.id),
+        majors: filterData.majors.map(item => item.id),
+        type_id: filterData.type_id ? filterData.type_id.id : '',
+        reference: filterData.reference.map(item => item.id),
         statement: (filterData.statement) ? filterData.statement[0] : '',
         sort_by: (this.searchSelector.value) ? 'created_at' : '',
         sort_type: (filterData.sort_type) ? filterData.sort_type[0] : this.searchSelector.value,
-        statuses: (filterData.statuses) ? filterData.statuses.map(item => item) : [],
-        // tags_with_childrens: (filterData.tags_with_childrens) ? filterData.tags_with_childrens : false
+        statuses: filterData.statuses.map(item => item.id),
+        question_report_type: filterData.question_report_type.map(item => item.id),
+        report_status: (filterData.report_status.title) ? filterData.report_status.title : '',
         ...(typeof filterData.tags_with_childrens && { tags_with_childrens: filterData.tags_with_childrens })
       }
     },
@@ -356,12 +357,13 @@ export default {
           sort_by: 'created_at',
           sort_type: this.searchSelector.value,
           // statement: '',
-          tags_with_childrens: 0
+          tags_with_childrens: 1,
+          report_status: ''
         }
       }
       this.loadingQuestion.loading = true
       this.questions.loading = true
-      this.$axios.get(API_ADDRESS.question.index(filters, page))
+      this.$axios.get(API_ADDRESS.question.index(filters, page, true))
         .then((response) => {
           this.questions = new QuestionList(response.data.data)
           this.paginationMeta = response.data.meta
@@ -376,8 +378,10 @@ export default {
         })
     },
     getFilterOptions() {
+      this.loadings.optionsLoading = true
       this.$axios.get(API_ADDRESS.option.base)
         .then((response) => {
+          this.loadings.optionsLoading = false
           response.data.data.forEach(option => {
             if (option.type === 'reference_type') {
               this.filterQuestions.reference_type.push(option)
@@ -387,15 +391,50 @@ export default {
               this.filterQuestions.major_type.push(option)
             } else if (option.type === 'question_type') {
               this.filterQuestions.types.push(option)
+            } else if (option.type === 'question_report_type') {
+              this.filterQuestions.report_type.push(option)
+              this.reportIssuesList.push(option)
             }
           })
         })
+        .catch(() => {
+          this.loadings.optionsLoading = false
+        })
       this.getQuestionStatuses()
+      this.getQuestionReportStatuses()
+      this.getLevelsFilterData()
+    },
+    getLevelsFilterData() {
+      this.loadings.levelTypeLoading = true
+      this.$axios.get(API_ADDRESS.question.levels)
+        .then(response => {
+          this.filterQuestions.level_type = response.data.data
+          this.loadings.levelTypeLoading = false
+        })
+        .catch(() => {
+          this.loadings.levelTypeLoading = false
+        })
     },
     getQuestionStatuses () {
+      this.loadings.statusLoading = true
       this.$axios.get(API_ADDRESS.question.status.base)
         .then(response => {
           this.filterQuestions.statuses = response.data.data
+          this.loadings.statusLoading = false
+        })
+        .catch(() => {
+          this.loadings.statusLoading = true
+        })
+    },
+    getQuestionReportStatuses() {
+      this.loadings.reportStatusLoading = true
+      this.$axios.get(API_ADDRESS.question.reportStatuses)
+        .then(response => {
+          this.loadings.reportStatusLoading = false
+          this.filterQuestions.report_status = response.data.data
+        })
+        .catch(() => {
+          this.loadings.reportStatusLoading = false
         })
     },
     filterByStatement() {
@@ -453,7 +492,8 @@ export default {
     flex-direction: row;
     justify-content: space-between;
     background: #f4f6f9;
-    @media only screen and (max-width: 599px) {
+
+    @media only screen and (max-width: 600px) {
       flex-direction: column;
       justify-content: center;
       align-items: center;
@@ -552,6 +592,20 @@ export default {
 
 .main-container {
 
+  @media only screen and (max-width: 1919px) {
+    padding-left: 0;
+    padding-right: 24px;
+  }
+
+  @media only screen and (max-width: 1439px) {
+    padding-left: 30px;
+  }
+
+  @media only screen and (max-width: 599px) {
+    padding-left: 1px;
+    padding-right: 0px;
+  }
+
   .question-bank-header {
     padding-bottom: 30px;
   }
@@ -574,19 +628,12 @@ export default {
 }
 
 @media only screen and (max-width: 1919px) {
-  .main-container {
-    padding-left: 0;
-    padding-right: 24px;
-  }
   .question-bank-filter {
     padding-right: 20px;
   }
 }
 
 @media only screen and (max-width: 1439px) {
-  .main-container {
-    padding-left: 30px;
-  }
   .question-bank-header {
     padding-bottom: 20px;
   }

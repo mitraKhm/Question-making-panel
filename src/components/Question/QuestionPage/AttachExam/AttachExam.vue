@@ -144,12 +144,12 @@
 </template>
 
 <script>
+import API_ADDRESS from 'src/api/Addresses'
 import { Question } from 'src/models/Question'
 import { ExamList, Exam } from 'src/models/Exam'
-import { QuestSubcategoryList } from 'src/models/QuestSubcategory'
-import { QuestCategoryList } from 'src/models/QuestCategory'
 import { EntityCrudFormBuilder } from 'quasar-crud'
-import API_ADDRESS from 'src/api/Addresses'
+import { QuestCategoryList } from 'src/models/QuestCategory'
+import { QuestSubcategoryList } from 'src/models/QuestSubcategory'
 
 export default {
   name: 'AttachExam',
@@ -200,9 +200,18 @@ export default {
           name: 'exam',
           label: 'آزمون ها',
           selectionMode: 'multiple',
-          buttonColor: 'primary',
-          buttonTextColor: 'white',
-          buttonBadgeColor: 'amber-7',
+          popUpButtonConfig: {
+            color: 'primary',
+            textColor: 'white',
+            badgeColor: 'amber-7',
+            label: 'انتخاب از لیست آزمون ها'
+          },
+          tableRowExpandable: true,
+          dialogConfirmButtonConfig: {
+            unelevated: true,
+            color: 'positive',
+            label: 'ثبت آزمون'
+          },
           indexConfig: {
             apiAddress: API_ADDRESS.exam.base(),
             tableTitle: 'لیست آزمون ها',
@@ -241,8 +250,8 @@ export default {
             },
             inputs: [
               { type: 'input', name: 'statement', placeholder: 'عنوان', col: 'col-md-3' },
-              { type: 'date', name: 'start_at_from', col: 'col-md-4', placeholder: 'تاریخ شروع از' },
-              { type: 'date', name: 'start_at_till', col: 'col-md-4', placeholder: 'تاریخ شروع تا' }
+              { type: 'date', name: 'start_at_from', calendarIcon: ' ', col: 'col-md-4', placeholder: 'تاریخ شروع از' },
+              { type: 'date', name: 'start_at_till', calendarIcon: ' ', col: 'col-md-4', placeholder: 'تاریخ شروع تا' }
             ],
             itemIdentifyKey: 'id'
           },
@@ -522,7 +531,7 @@ export default {
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-left: 16px #{"/* rtl:ignore */"};
+          //margin-left: 16px #{"/* rtl:ignore */"};
 
           .question-details-subject-img {
             height: 24px;
@@ -603,7 +612,7 @@ export default {
           margin-top: 5px;
           .input-box {
             //width: initial;
-            width: 78%;
+            width: calc( 100% - 52px );
           }
           .icon-box {
             width: 40px;
@@ -613,7 +622,7 @@ export default {
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-left: 16px ;
+            margin-left: 12px ;
             color: #65677F ;
             .default-detail-btn {
               width: 40px;

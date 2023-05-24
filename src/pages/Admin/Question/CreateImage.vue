@@ -13,13 +13,15 @@
           <!--            color="primary"-->
           <!--          />-->
         </span>
-        <q-btn
-          label="تایپ سوال"
-          color="primary"
-          class="change-type"
-          :to="{ name: 'Admin.Question.Create.Text.MultipleChoice' }"
-          unelevated
-        />
+        <div class="action-buttons">
+          <q-btn
+            label="تایپ سوال"
+            color="primary"
+            class="change-type"
+            :to="{ name: 'Admin.Question.Create.Text.MultipleChoice' }"
+            unelevated
+          />
+        </div>
       </div>
     </div>
     <div class="row">
@@ -58,6 +60,9 @@
           @tags-collected="setTagsOnCreate"
         />
       </div>
+      <question-video-answer :contentId="question.content_id"
+                             :timePointId="question.time_point_id"
+                             @update-value="updateQuestionContent($event)" />
       <btn-box
         class="col-12"
         @saveQuestion="createQuestionImage(question)"
@@ -78,12 +83,15 @@ import { QuestionStatusList } from 'src/models/QuestionStatus'
 import { QuestCategoryList } from 'src/models/QuestCategory'
 import QuestionIdentifier from 'components/Question/QuestionPage/QuestionIdentifier'
 import mixinTree from 'src/mixin/Tree'
+import QuestionVideoAnswer from 'components/Question/QuestionPage/QuestionVideoAnswer.vue'
+
 export default {
   name: 'CreateImage',
   components: {
     QuestionIdentifier,
     uploadImage,
-    BtnBox
+    BtnBox,
+    QuestionVideoAnswer
   },
   mixins: [
     AdminActionOnQuestion,
@@ -95,7 +103,8 @@ export default {
       examList: new ExamList(),
       subCategoriesList: new QuestSubcategoryList(),
       questionStatuses: new QuestionStatusList(),
-      categoryList: new QuestCategoryList()
+      categoryList: new QuestCategoryList(),
+      questionVideoAnswerDialog: false
     }
   },
   beforeRouteUpdate () {
@@ -116,6 +125,12 @@ export default {
   provide () {
     return {
       providedQuestion: computed(() => this.question)
+    }
+  },
+  methods: {
+    updateQuestionContent(data) {
+      this.question.content_id = data.content_id
+      this.question.time_point_id = data.time_point_id
     }
   }
 }

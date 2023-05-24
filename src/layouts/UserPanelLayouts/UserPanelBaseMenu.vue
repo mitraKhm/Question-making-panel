@@ -175,7 +175,10 @@ export default {
   },
   methods: {
     logOut () {
-      return this.$store.dispatch('Auth/logOut')
+      this.$store.dispatch('Auth/logOut')
+        .then(() => {
+          this.$router.push({ name: 'login' })
+        })
     },
     goToLogin() {
       this.$router.push({ name: 'login' })
@@ -292,7 +295,7 @@ export default {
           .list-section {
             display: flex;
             flex-direction: row;
-            justify-content: right;
+            justify-content: left;
 
             .q-avatar {
               height: 22px;

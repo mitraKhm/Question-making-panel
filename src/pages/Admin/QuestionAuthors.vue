@@ -4,43 +4,45 @@
     v-model:default-inputs="defaultInputs"
     v-model:index-inputs="indexInputs"
     v-model:create-inputs="createInputs"
+    v-model:edit-inputs="editInputs"
     v-bind="allProps"
   >
     <!--    {inputData, showConfirmRemoveDialog}-->
     <template v-slot:entity-crud-table-cell="{inputData, showConfirmRemoveDialog}">
-      <q-td :props="inputData.props">
-        <template v-if="inputData.props.col.name === 'actions'">
-          <q-btn round
-                 flat
-                 dense
-                 size="md"
-                 color="info"
-                 icon="info"
-                 :to="{name:'Admin.QuestionAuthors.Show', params: {id: inputData.props.row.id}}">
-            <q-tooltip>
-              مشاهده
-            </q-tooltip>
-          </q-btn>
-          <q-btn round
-                 flat
-                 dense
-                 size="md"
-                 color="negative"
-                 icon="delete"
-                 class="q-ml-md"
-                 @click="showConfirmRemoveDialog(inputData.props.row, 'id', getRemoveMessage(inputData.props.row))">
-            <q-tooltip>
-              حذف
-            </q-tooltip>
-          </q-btn>
-        </template>
-        <template v-else-if="inputData.props.col.name === 'description'">
-          <div v-html="inputData.props.value" />
-        </template>
-        <template v-else>
-          {{ inputData.props.value }}
-        </template>
-      </q-td>
+      <template v-if="inputData.col.name === 'actions'">
+        <q-btn round
+               flat
+               dense
+               size="md"
+               color="info"
+               icon="info"
+               :to="{name:'Admin.QuestionAuthors.Show', params: {id: inputData.props.row.id}}">
+          <q-tooltip>
+            مشاهده
+          </q-tooltip>
+        </q-btn>
+        <q-btn round
+               flat
+               dense
+               size="md"
+               color="negative"
+               icon="delete"
+               class="q-ml-md"
+               @click="showConfirmRemoveDialog(inputData.props.row, 'id', getRemoveMessage(inputData.props.row))">
+          <q-tooltip>
+            حذف
+          </q-tooltip>
+        </q-btn>
+      </template>
+      <template v-else-if="inputData.col.name === 'description'">
+        <div v-html="inputData.col.value" />
+      </template>
+      <template v-else-if="inputData.col.name === 'image'">
+        <q-img :src="inputData.col.value" />
+      </template>
+      <template v-else>
+        {{ inputData.col.value }}
+      </template>
     </template>
   </entity-crud>
 </template>
@@ -116,6 +118,20 @@ export default {
                 field: row => row.created_at
               },
               {
+                name: 'order',
+                required: true,
+                label: 'ترتیب نمایش',
+                align: 'left',
+                field: row => row.order
+              },
+              {
+                name: 'image',
+                required: true,
+                label: 'تصویر',
+                align: 'left',
+                field: row => row.image
+              },
+              {
                 name: 'actions',
                 required: true,
                 label: 'عملیات',
@@ -130,18 +146,30 @@ export default {
       defaultInputs: [
         { type: 'hidden', name: 'id', label: 'شناسه', responseKey: 'data.id', col: 'col-md-1', placeholder: ' ', filled: true },
         { type: 'hidden', name: 'type', label: 'نوع', responseKey: 'data.type', col: 'col-md-1', placeholder: ' ', filled: true },
-        // { type: 'file', name: 'image', label: 'تصویر', col: 'col-md-3', placeholder: ' ', filled: true },
-        { type: 'input', name: 'value', label: 'عنوان', responseKey: 'data.value', col: 'col-md-3', placeholder: ' ', filled: true }
+        { type: 'file', name: 'image', label: 'تصویر', responseKey: 'data.image', col: 'col-md-3', placeholder: ' ', filled: true },
+        { type: 'space', col: 'col-md-12' },
+        { type: 'input', name: 'value', label: 'عنوان', responseKey: 'data.value', col: 'col-md-3', placeholder: ' ', filled: true },
+        { type: 'input', name: 'order', label: 'ترتیب نمایش', responseKey: 'data.order', col: 'col-md-2', placeholder: ' ', filled: true }
       ],
       createInputs: [
-        // { type: 'file', name: 'image', label: 'تصویر', col: 'col-md-3', placeholder: ' ', filled: true },
+        { type: 'file', name: 'image', label: 'تصویر', col: 'col-md-3', placeholder: ' ', filled: true },
+        { type: 'space', col: 'col-md-12' },
         { type: 'hidden', name: 'type', value: 'reference_type', label: '', col: 'col-12' },
-        { type: 'input', name: 'value', label: 'عنوان', col: 'col-md-3', placeholder: ' ', filled: true }
+        { type: 'input', name: 'value', label: 'عنوان', col: 'col-md-3', placeholder: ' ', filled: true },
+        { type: 'input', name: 'order', label: 'ترتیب نمایش', col: 'col-md-2', placeholder: ' ', filled: true }
       ],
-      editInputs: [],
+      editInputs: [
+        { type: 'hidden', name: 'id', label: 'شناسه', responseKey: 'data.id', col: 'col-md-1', placeholder: ' ' },
+        { type: 'file', name: 'image', label: 'تصویر', responseKey: 'data.image', col: 'col-md-12', placeholder: ' ', filled: true, class: 'float-left q-mb-md' },
+        { type: 'space', col: 'col-md-12' },
+        { type: 'input', name: 'value', label: 'عنوان', responseKey: 'data.value', col: 'col-md-3', placeholder: ' ', filled: true },
+        { type: 'input', name: 'order', label: 'ترتیب نمایش', responseKey: 'data.order', col: 'col-md-2', placeholder: ' ', filled: true }
+      ],
       showInputs: [],
       indexInputs: [
-        { type: 'input', name: 'value', label: 'عنوان', responseKey: 'data.value', col: 'col-md-3', placeholder: ' ', filled: true }
+        { type: 'input', name: 'value', label: 'عنوان', responseKey: 'data.value', col: 'col-md-3', placeholder: ' ', filled: true },
+        { type: 'hidden', name: 'type', value: 'reference_type' },
+        { type: 'hidden', name: 'with_pagination', value: 'true' }
       ]
     }
   },
