@@ -10,7 +10,8 @@
         </div>
       </div>
     </div>
-    <div class="q-pa-md row justify-center q-mt-lg">
+    <div v-if="!user.hasPermission('soalaaBankSoftLaunch')"
+         class="q-pa-md row justify-center q-mt-lg">
       <q-banner inline-actions
                 rounded
                 style="width: 90vw"
@@ -18,6 +19,7 @@
         این قسمت به زودی در دسترس خواهد یود
       </q-banner>
     </div>
+
     <div class="row packages-row">
       <div class="col-12 packages-col">
         <div class="packages-wrapper">
@@ -45,8 +47,8 @@
               <q-btn class="package-item-action-btn"
                      label="شروع کنید"
                      unelevated
+                     :disable="!user.hasPermission('soalaaBankSoftLaunch')"
                      :loading="subscribeLoading"
-                     disable
                      @click="subscribe(item.id)"
               />
             </div>
@@ -68,6 +70,7 @@
     </div>
   </div>
 </template>
+
 <script>
 import { defineComponent } from 'vue'
 import API_ADDRESS from 'src/api/Addresses'
@@ -85,7 +88,10 @@ export default defineComponent({
     this.getData()
   },
   computed: {
-    isUserLogin() {
+    user () {
+      return this.$store.getters['Auth/user']
+    },
+    isUserLogin () {
       return this.$store.getters['Auth/isUserLogin']
     }
   },

@@ -191,10 +191,11 @@
                          label="انصراف"></q-btn>
                   <q-btn unelevated
                          :disable="downloadLoading"
+                         :loading="downloadLoading"
                          color="primary"
                          class="btn"
                          label="دانلود PDF"
-                         @click="generatePDF('questionPdf')"
+                         @click="downloadPDF('questionPdf')"
                   />
                 </div>
               </div>
@@ -206,20 +207,17 @@
                 <q-skeleton height="900px"
                             class="pdf-skeleton" />
               </div>
-              <p-d-f-container v-else-if="doesHaveQuestion"
+              <div v-else-if="!doesHaveQuestion"
+                   class="no-question">
+                <q-skeleton height="900px"
+                            class="pdf-skeleton" />
+              </div>
+              <p-d-f-container v-else
                                :exam="examInfo"
                                :questions="questions"
                                :pdfConfig="pdfConfig"
                                @loaded="onQuestionsLoaded"
               />
-            <!--            <vue-pdf-embed-->
-            <!--              v-else-->
-            <!--              ref="pdfRef"-->
-            <!--              :page="page"-->
-            <!--              class="pdf"-->
-            <!--              :source="pdfSrc"-->
-            <!--              @rendered="handleDocumentRender"-->
-            <!--            />-->
             </div>
           </q-tab-panel>
           <q-tab-panel class="tab-panel-style"
@@ -242,10 +240,11 @@
                          label="انصراف"></q-btn>
                   <q-btn unelevated
                          :disable="downloadLoading"
+                         :loading="downloadLoading"
                          color="primary"
                          class="btn"
                          label="دانلود PDF"
-                         @click="generatePDF('descriptiveAnswerPdf')"
+                         @click="downloadPDF('descriptiveAnswerPdf')"
                   />
                 </div>
               </div>
@@ -257,21 +256,18 @@
                 <q-skeleton height="900px"
                             class="pdf-skeleton" />
               </div>
-              <p-d-f-container v-else-if="doesHaveQuestion"
+              <div v-else-if="!doesHaveQuestion"
+                   class="no-question">
+                <q-skeleton height="900px"
+                            class="pdf-skeleton" />
+              </div>
+              <p-d-f-container v-else
                                :exam="examInfo"
                                :questions="questions"
                                :pdfConfig="pdfConfig"
                                :mode="'onlyDescriptiveAnswers'"
                                @loaded="onQuestionsLoaded"
               />
-            <!--            <vue-pdf-embed-->
-            <!--              v-else-->
-            <!--              ref="pdfRef"-->
-            <!--              :page="page"-->
-            <!--              class="pdf"-->
-            <!--              :source="pdfSrc"-->
-            <!--              @rendered="handleDocumentRender"-->
-            <!--            />-->
             </div>
           </q-tab-panel>
           <q-tab-panel class="tab-panel-style"
@@ -294,15 +290,17 @@
                          label="انصراف"></q-btn>
                   <q-btn unelevated
                          :disable="downloadLoading"
+                         :loading="downloadLoading"
                          color="primary"
                          class="btn"
                          label="دانلود PDF"
-                         @click="generatePDF('keyAnswerPdf')"
+                         @click="downloadPDF('keyAnswerPdf')"
                   />
                 </div>
               </div>
             </div>
-            <div ref="keyAnswerPdf">
+            <div ref="keyAnswerPdf"
+                 class="pdf-container">
               <pdf-page :title="examInfo.title"
                         :grade="examInfo.gradeTitle"
                         :major="examInfo.majorTitle"
@@ -354,6 +352,7 @@ export default {
   data: () => ({
     tab: 'questions',
     questionPagesCount: 0,
+    reportUsedPdfLoading: false,
     downloadLoading: false,
     pageCount: 0,
     page: 1,
@@ -409,6 +408,7 @@ export default {
         return
       }
       this.questionPagesCount = pages.length
+      this.loading = false
     },
     handleDocumentRender(data) {
       this.pageCount = this.$refs.pdfRef.pageCount
@@ -423,7 +423,7 @@ export default {
           this.examInfo.title = response.data.data.title
           this.examInfo.gradeTitle = response.data.data.temp.grade.title
           if (response.data.data.temp.major) {
-            this.examInfo.majorTitle = response.data.data.temp.major.title
+            this.examInfo.majorTitle = response.data.data.temp.major.value
           }
           this.examInfo.n_questions = response.data.data.n_questions
           this.loading = false
@@ -444,29 +444,69 @@ export default {
           this.loading = false
         })
     },
-    replacePdf() {
-      this.pdfSrc = 'https://nodes.alaatv.com/media/c/pamphlet/1210/jalase1moshavere.pdf'
+    canGeneratePDF () {
+
+    },
+    reportUsedPdf () {
+      return new Promise((resolve, reject) => {
+        this.reportUsedPdfLoading = true
+        this.$axios.get(API_ADDRESS.exam.user.pdf(this.$route.params.examId))
+          .then(() => {
+            this.reportUsedPdfLoading = false
+            resolve()
+          })
+          .catch(() => {
+            this.reportUsedPdfLoading = false
+            reject()
+          })
+      })
+    },
+    downloadPDF (ref) {
+      this.generatePDF(ref)
+
+      // if (ref === 'questionPdf') {
+      //   this.downloadLoading = true
+      //   this.reportUsedPdf()
+      //     .then(() => {
+      //       this.generatePDF(ref)
+      //     })
+      //     .catch(() => {
+      //       this.downloadLoading = false
+      //     })
+      // } else {
+      //   this.generatePDF(ref)
+      // }
     },
     generatePDF (ref) {
       this.downloadLoading = true
-      html2pdf()
-        .set({
-          image: { type: 'png', quality: 1 },
-          filename: 'Soalaa.pdf',
-          html2canvas: {
-            dpi: 1200,
-            scale: 1
-          }
-        })
-        .from(this.$refs[ref])
-        .save()
-        .thenExternal(() => {
-          this.downloadLoading = false
-        })
+      setTimeout(() => {
+        html2pdf()
+          .set({
+            margin: [0, 0, 0, 0],
+            image: {
+              type: 'jpeg',
+              quality: 0.6
+            },
+            filename: this.examInfo.title,
+            html2canvas: {
+              dpi: 1,
+              scale: 2.5,
+              letterRendering: true,
+              useCORS: true
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          })
+          .from(this.$refs[ref])
+          .save()
+          .thenExternal(() => {
+            this.downloadLoading = false
+          })
+      }, 100)
     }
   }
 }
 </script>
+
 <style>
 @media print {
   /* * {
@@ -488,6 +528,7 @@ export default {
   }
 }
 </style>
+
 <style scoped lang="scss">
 .download-exam {
   :deep(.q-col-gutter-y-sm) {
